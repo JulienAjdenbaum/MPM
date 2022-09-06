@@ -1,7 +1,10 @@
 import numpy as np
-import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 from mayavi import mlab
+from matplotlib import rc
+
+rc('text', usetex=True)
+
 
 # def observ(values, crop):
 #     k = values.shape[0]//2
@@ -32,22 +35,20 @@ from mayavi import mlab
 #     print("ploted")
 
 def observcoupe(values, center, title):
-    plt.imshow(values[values.shape[0]//2+center,:,:])
+    plt.imshow(values[values.shape[0] // 2 + center, :, :])
     plt.title(title)
     plt.show()
 
 
 def observ(values, center, title):
     observcoupe(values, center, title)
-    # kernel_size = values.shape[0]//2
-    # xi, yi, zi = np.mgrid[- kernel_size: kernel_size + 1,
-    #           -kernel_size: kernel_size + 1,
-    #           - kernel_size: kernel_size + 1]
-    # density = values[xi, yi, zi]
-    # grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
-    # min = density.min()
-    # max = density.max()
-    # mlab.pipeline.volume(grid, vmin=min, vmax=min + .5 * (max - min))
-    # mlab.axes()
-    # mlab.title(title)
-    # mlab.show()
+    kernel_size = values.shape[0] // 2
+    xi, yi, zi = np.mgrid[-kernel_size: kernel_size + 1, -kernel_size: kernel_size + 1, -kernel_size: kernel_size + 1]
+    density = values[xi, yi, zi]
+    grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
+    mini = density.min()
+    maxi = density.max()
+    mlab.pipeline.volume(grid, vmin=mini, vmax=mini + .5 * (maxi - mini))
+    mlab.axes()
+    mlab.title(title)
+    mlab.show()

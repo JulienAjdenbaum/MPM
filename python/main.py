@@ -9,26 +9,30 @@ import prox.proxfmu as proxfmu
 import prox.utils as utils
 import time
 import matplotlib.pyplot as plt
-#np.random.seed(0)
+from matplotlib import rc
 
-def gen_observation(kernel_size, mu, D, plot):
-    sigma_noise = 0.1
-    volume_size = 10
+rc('text', usetex=True)
+
+
+# np.random.seed(0)
+
+def gen_observation(kernel_size, kernel_mu, kernel_D, plot_observation):
+    sigma_noise = 0.3
     sphere_size = 5
-    msphere = make_sphere.make_sphere(sphere_size, kernel_size, False)
-    k = kernel.gaussian_kernel(kernel_size, D, mu)
-    im = convolve(msphere, k, 'same')
-    if plot:
-        observation3D.observ(msphere, 0, "sphere")
-        observation3D.observ(k, mu[0], "ktrue")
-        observation3D.observ(im, mu[0], "im before noise")
-    im += np.random.randn(im.shape[0], im.shape[1], im.shape[2]) * sigma_noise
-    if plot:
-        observation3D.observ(im, mu[0], "im noised")
-    #     observation3D.observ(msphere)
-    #     observation3D.observ(im)
-    return im, k, msphere
+    my_sphere = make_sphere.make_sphere(sphere_size, kernel_size, False)
+    generated_k = kernel.gaussian_kernel(kernel_size, kernel_D, kernel_mu)
+    im = convolve(my_sphere, generated_k, 'same')
+    if plot_observation:
+        observation3D.observ(my_sphere, 0, "Grosse bille")
+        observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
+        observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
 
+    im += np.random.randn(im.shape[0], im.shape[1], im.shape[2]) * sigma_noise
+    if plot_observation:
+        observation3D.observ(im, kernel_mu[0], "Bille convoluée bruitée")
+    #     observation3D.observ(my_sphere)
+    #     observation3D.observ(im)
+    return im, generated_k, my_sphere
 
 
 def main(lam, plot):
@@ -38,9 +42,7 @@ def main(lam, plot):
     angle = np.array([np.pi / 4, 0, -np.pi / 6])
     Dtrue = kernel.genD(angle, C)
 
-    x, y, z = np.mgrid[- kernel_size: kernel_size + 1,
-              -kernel_size: kernel_size + 1,
-              - kernel_size: kernel_size + 1]
+    x, y, z = np.mgrid[-kernel_size: kernel_size + 1, -kernel_size: kernel_size + 1, -kernel_size: kernel_size + 1]
 
     X = np.stack((x, y, z), axis=3)
 
@@ -51,21 +53,19 @@ def main(lam, plot):
     mu = np.random.rand(3)
     # observation3D.observ(k)
 
-    eps = 1e-9
     epsD = 0.001
     gam = 1
     alpha = 0.01
-    nu = 0.1
     t = time.time()
 
     for i in range(1000):
         c = utils.c(D, X, mu, epsD)
-        newk, nu = proxfk.prox(Y, k, p, c, gam, lam, alpha, nu)
+        newk = proxfk.prox(Y, k, p, c, gam, lam, alpha)
         newmu = proxfmu.prox(X, newk, D, mu, gam, lam, epsD)
         newD = proxd.prox(D, newk, X, newmu, epsD, lam, gam)
-        if i%30==0:
+        if i % 30 == 0:
             # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
-                  # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
+            # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
             print("\niteration : ", i, "lambda  ", lam,
                   "\n k-ktrue", np.linalg.norm(k - ktrue),
                   "\n k-newk", np.linalg.norm(k - newk),
@@ -78,13 +78,13 @@ def main(lam, plot):
             print()
         # print(np.linalg.norm(k - newk) + np.linalg.norm(mu - newmu) + np.linalg.norm(D - newD))
         #
-        if np.linalg.norm(k - newk) + np.linalg.norm(mu - newmu) + np.linalg.norm(D - newD) < 1e-5:
+        if np.linalg.norm(k - newk) + np.linalg.norm(mu - newmu) + np.linalg.norm(D - newD) < 1e-6:
             print("last iteration :", i)
             break
         k, mu, D = newk, newmu, newD
 
         # print(np.sum(k))
-    print("exec time : ", time.time()-t)
+    print("exec time : ", time.time() - t)
     print("D est", np.round(D, 3))
     print("D true", np.round(Dtrue, 3))
     print("mu est", np.round(mu, 2))
@@ -93,27 +93,29 @@ def main(lam, plot):
 
     if plot:
         observation3D.observ(ktrue, mutrue[0], "ktrue")
-        observation3D.observ(kargs, mutrue[0], "kargs")
-        observation3D.observ(k, mutrue[0], "k")
-        observation3D.observ(Y, mutrue[0], "Y")
+        observation3D.observ(kargs, mutrue[0], "Estimation du Noyau")
+        observation3D.observ(k, mutrue[0], "Noyau estimé à partir des paramètres")
+        # observation3D.observ(Y, mutrue[0], "Y")
         observation3D.observ(convolve(p, k, "same"), mutrue[0], "im_k")
         observation3D.observ(convolve(p, kargs, "same"), mutrue[0], "im_kargs")
     print()
-    return D, mu, kargs, k, np.linalg.norm(k-ktrue), np.linalg.norm(kargs-ktrue)
+    return D, mu, kargs, k, np.linalg.norm(k - ktrue), np.linalg.norm(kargs - ktrue)
 
 
-plot = False
-x = []
+# _lambda = 10
+# chosen_D, chosen_mu, k_args, chosen_k, norm1, norm2 = main(_lambda / 10, True)
+
+X_plot = []
 y1 = []
 y2 = []
 for _lambda in range(1, 20, 2):
-    D, mu, kargs, k, norm1, norm2 = main(_lambda/10, plot)
+    chosen_D, chosen_mu, k_args, chosen_k, norm1, norm2 = main(_lambda/10, True)
     print(_lambda/10, norm1, norm2)
-    x.append(_lambda)
+    X_plot.append(_lambda/10)
     y1.append(norm1)
     y2.append(norm2)
 
-#%%
-plt.plot(x, y1)
-plt.plot(x, y2)
+# %%
+plt.plot(X_plot, y1)
+plt.plot(X_plot, y2)
 plt.show()

@@ -29,7 +29,7 @@ def proxg(k, c, gam, lam):
     myprint("nu = ", nu)
     nu = nu[-1]
     # print("lamb proxg", np.max(w(nu, k, c, lam, gam)))
-    return np.real(gam * lam * mylambertw(w(nu, k, c, lam, gam) / (lam * gam))), nu
+    return np.real(gam * lam * mylambertw(w(nu, k, c, lam, gam) / (lam * gam)))
 
 
 def nu_hat(lamb, gam, k, c):

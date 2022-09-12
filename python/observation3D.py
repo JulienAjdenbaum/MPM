@@ -35,15 +35,22 @@ rc('text', usetex=True)
 #     print("ploted")
 
 def observcoupe(values, center, title):
+    plt.imshow(values[:, values.shape[1] // 2 + center, :])
+    plt.title(title + " - vue latérale ")
+    plt.show()
     plt.imshow(values[values.shape[0] // 2 + center, :, :])
-    plt.title(title)
+    plt.title(title + " - vue du dessus")
     plt.show()
 
 
 def observ(values, center, title):
     observcoupe(values, center, title)
-    kernel_size = values.shape[0] // 2
-    xi, yi, zi = np.mgrid[-kernel_size: kernel_size + 1, -kernel_size: kernel_size + 1, -kernel_size: kernel_size + 1]
+    kernel_sizex = values.shape[0] // 2
+    kernel_sizey = values.shape[1] // 2
+    kernel_sizez = values.shape[2] // 2
+    xi, yi, zi = np.mgrid[-kernel_sizex: kernel_sizex + values.shape[0] % 2,
+                 -kernel_sizey: kernel_sizey + values.shape[1] % 2,
+                 -kernel_sizez: kernel_sizez + values.shape[2] % 2]
     density = values[xi, yi, zi]
     grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
     mini = density.min()

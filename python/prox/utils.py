@@ -1,5 +1,5 @@
 import numpy as np
-from proxfk import myprint
+from .proxfk import myprint
 
 
 def c(D, x, mu, eps):

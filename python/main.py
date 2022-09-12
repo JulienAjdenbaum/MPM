@@ -10,6 +10,7 @@ import prox.utils as utils
 import time
 import matplotlib.pyplot as plt
 from matplotlib import rc
+from skimage import io as skio
 
 rc('text', usetex=True)
 
@@ -17,7 +18,7 @@ rc('text', usetex=True)
 # np.random.seed(0)
 
 def gen_observation(kernel_size, kernel_mu, kernel_D, plot_observation):
-    sigma_noise = 0.3
+    sigma_noise = 0.1
     sphere_size = 5
     my_sphere = make_sphere.make_sphere(sphere_size, kernel_size, False)
     generated_k = kernel.gaussian_kernel(kernel_size, kernel_D, kernel_mu)
@@ -105,17 +106,81 @@ def main(lam, plot):
 # _lambda = 10
 # chosen_D, chosen_mu, k_args, chosen_k, norm1, norm2 = main(_lambda / 10, True)
 
-X_plot = []
-y1 = []
-y2 = []
-for _lambda in range(1, 20, 2):
-    chosen_D, chosen_mu, k_args, chosen_k, norm1, norm2 = main(_lambda/10, True)
-    print(_lambda/10, norm1, norm2)
-    X_plot.append(_lambda/10)
-    y1.append(norm1)
-    y2.append(norm2)
+# X_plot = []
+# y1 = []
+# y2 = []
+# for _lambda in range(1, 20, 2):
+#     chosen_D, chosen_mu, k_args, chosen_k, norm1, norm2 = main(_lambda/10, plot=False)
+#     print(_lambda/10, norm1, norm2)
+#     X_plot.append(_lambda/10)
+#     y1.append(norm1)
+#     y2.append(norm2)
+#
+# plt.plot(X_plot, y1)
+# plt.plot(X_plot, y2)
+# plt.show()
 
-# %%
-plt.plot(X_plot, y1)
-plt.plot(X_plot, y2)
-plt.show()
+# path = '/home/julin/Documents/imbilles/4um/'
+# imname = '1_max_810_575-630_4um_Pmax_500V_3X_10_0.497umx_0.5z.tif'
+# im = skio.imread(path + imname)
+# print(im.shape)
+# observation3D.observ(im, 0, "bille")
+
+
+def from_bille(lam, plot, p, Y):
+
+    kernel_size = Y.shape[0]//2
+    x, y, z = np.mgrid[-kernel_size: kernel_size + Y.shape[0] % 2,
+                       -kernel_size: kernel_size + Y.shape[1] % 2,
+                       -kernel_size: kernel_size + Y.shape[2] % 2]
+    X = np.stack((x, y, z), axis=3)
+
+    # Y, ktrue, p = gen_observation(kernel_size, mutrue, Dtrue, plot)
+
+    D = np.eye(3)
+    k = kernel.gaussian_kernel(kernel_size, np.diag([1, 1, 1]), [0, 0, 0])
+    mu = np.random.rand(3)
+    # observation3D.observ(k)
+
+    epsD = 0.001
+    gam = 1
+    alpha = 0.01
+    t = time.time()
+
+    for i in range(1000):
+        c = utils.c(D, X, mu, epsD)
+        # print(k.shape, p.shape, Y.shape)
+        newk = proxfk.prox(Y, k, p, c, gam, lam, alpha)
+        newmu = proxfmu.prox(X, newk, D, mu, gam, lam, epsD)
+        newD = proxd.prox(D, newk, X, newmu, epsD, lam, gam)
+        if i % 30 == 0:
+            # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
+            # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
+            print("\niteration : ", i, "lambda  ", lam,
+                  "\n k-newk", np.linalg.norm(k - newk),
+                  "\n mu-newmu", np.linalg.norm(mu - newmu),
+                  "\n D-newD", np.linalg.norm(D - newD),
+                  "\n max k, min k", np.max(newk), np.min(newk),
+                  "\n mu est", newmu)
+            print(np.round(D, 3))
+        if np.linalg.norm(k - newk) + np.linalg.norm(mu - newmu) + np.linalg.norm(D - newD) < 1e-6:
+            print("last iteration :", i)
+            break
+        k, mu, D = newk, newmu, newD
+
+        # print(np.sum(k))
+    print("exec time : ", time.time() - t)
+    print("D est", np.round(D, 3))
+    print("mu est", np.round(mu, 2))
+
+    kargs = kernel.gaussian_kernel(kernel_size, D, mu)
+
+    if plot:
+        # observation3D.observ(ktrue, mutrue[0], "ktrue")
+        observation3D.observ(np.swapaxes(kargs, 0, 2), 0, "Estimation du Noyau")
+        observation3D.observ(k, 0, "Noyau estimé à partir des paramètres")
+        # observation3D.observ(Y, mutrue[0], "Y")
+        observation3D.observ(convolve(p, k, "same"), 0, "im_k")
+        observation3D.observ(convolve(p, kargs, "same"), 0, "im_kargs")
+    print()
+    return D, mu, kargs, k  # np.linalg.norm(k - ktrue), np.linalg.norm(kargs - ktrue)

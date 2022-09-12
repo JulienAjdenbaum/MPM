@@ -18,3 +18,13 @@ def miniphi(D, eps):
 
 def check_symmetric(a, rtol=1e-05, atol=1e-08):
     return np.allclose(a, a.T, rtol=rtol, atol=atol)
+
+
+def get_barycentre(im):
+    xi, yi, zi = np.mgrid[0:im.shape[0],
+                          0:im.shape[1],
+                          0:im.shape[2]]
+    xg = np.sum(np.multiply(xi, im)) / np.sum(im)
+    yg = np.sum(np.multiply(yi, im)) / np.sum(im)
+    zg = np.sum(np.multiply(zi, im)) / np.sum(im)
+    return xg, yg, zg

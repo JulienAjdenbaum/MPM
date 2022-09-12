@@ -5,15 +5,7 @@ import numpy as np
 from make_sphere import make_sphere
 from observation3D import observ
 from main import from_bille
-
-def get_barycentre(im):
-    xi, yi, zi = np.mgrid[0:im.shape[0],
-                 0:im.shape[1],
-                 0:im.shape[2]]
-    xg = np.sum(np.multiply(xi, im)) / np.sum(im)
-    yg = np.sum(np.multiply(yi, im)) / np.sum(im)
-    zg = np.sum(np.multiply(zi, im)) / np.sum(im)
-    return (xg, yg, zg)
+from prox.utils import get_barycentre
 
 def pad(im):
     xg, yg, zg = get_barycentre(im)
@@ -37,6 +29,7 @@ def pad(im):
 
 crop_file = '/home/julin/Documents/imbilles/crops/4um/1_max_810_575-630_4um_Pmax_500V_3X_10_0.497umx_0.5z/2.tif'
 im = skio.imread(crop_file)
+print(np.max(im))
 im = im/np.max(im)
 print(np.max(im))
 # observ(im, 0, "crop")
@@ -46,6 +39,6 @@ im = pad(im)
 real_sphere_size = 4/0.5
 voxel_size = (0.5, 0.497, 0.497)
 p = make_sphere(real_sphere_size//2, im.shape[0]//2, False)
-observ(p, 0, "Bille simulée")
-observ(im, 0, "Observation bille")
+# observ(p, 0, "Bille simulée")
+# observ(im, 0, "Observation bille")
 chosen_D, chosen_mu, k_args, chosen_k, norm1, norm2 = from_bille(1, True, p, im)

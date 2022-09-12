@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mayavi import mlab
 from matplotlib import rc
+from prox.utils import get_barycentre
 
 rc('text', usetex=True)
 
@@ -59,3 +60,52 @@ def observ(values, center, title):
     mlab.axes()
     mlab.title(title)
     mlab.show()
+
+
+def observ_distri(values, resolutions, titre):
+    centre = np.array(get_barycentre(values)).astype(int)
+    idx = (np.arange(len(values[0, :, 0])) - centre[1]) * resolutions[1]
+    idy = (np.arange(len(values[0, 0, :])) - centre[2]) * resolutions[2]
+    idz = (np.arange(len(values[:, 0, 0])) - centre[0]) * resolutions[0]
+    plt.plot(idy, values[centre[0], centre[1], :])
+    mi_hauteur = 0.5 * np.max(values[centre[0], centre[1], :])
+    mi_hauteur_min = np.min(np.argwhere(values[centre[0], centre[1], :] >= mi_hauteur)) - 0.5
+    mi_hauteur_max = np.max(np.argwhere(values[centre[0], centre[1], :] >= mi_hauteur)) + 0.5
+    mi_hauteur_min = (mi_hauteur_min - centre[2]) * resolutions[2]
+    mi_hauteur_max = (mi_hauteur_max - centre[2]) * resolutions[2]
+    plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
+    FWMH = (mi_hauteur_max - mi_hauteur_min)
+    m = (mi_hauteur_max + mi_hauteur_min) / 2
+    plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
+    plt.title(titre + " - distribution selon y")
+    plt.xlabel("axe y ($\mu m$)")
+    plt.show()
+    plt.plot(idx, values[centre[0], :, centre[2]])
+    mi_hauteur = 0.5 * np.max(values[centre[0], :, centre[2]])
+    mi_hauteur_min = np.min(np.argwhere(values[centre[0], :, centre[2]] >= mi_hauteur)) - 0.5
+    mi_hauteur_max = np.max(np.argwhere(values[centre[0], :, centre[2]] >= mi_hauteur)) + 0.5
+    mi_hauteur_min = (mi_hauteur_min - centre[1]) * resolutions[1]
+    mi_hauteur_max = (mi_hauteur_max - centre[1]) * resolutions[1]
+    plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
+    plt.title(titre + " - distribution selon x")
+    FWMH = (mi_hauteur_max - mi_hauteur_min)
+    m = (mi_hauteur_max + mi_hauteur_min) / 2
+    plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
+    plt.xlabel("axe x ($\mu m$)")
+    plt.show()
+    plt.plot(idz, values[:, centre[1], centre[2]])
+    mi_hauteur = 0.5 * np.max(values[:, centre[1], centre[2]])
+    print(mi_hauteur)
+    mi_hauteur_min = np.min(np.argwhere(values[:, centre[1], centre[2]] >= mi_hauteur)) - 0.5
+    mi_hauteur_max = np.max(np.argwhere(values[:, centre[1], centre[2]] >= mi_hauteur)) + 0.5
+    mi_hauteur_min = (mi_hauteur_min - centre[0]) * resolutions[0]
+    mi_hauteur_max = (mi_hauteur_max - centre[0]) * resolutions[0]
+    print(mi_hauteur_min)
+    print(mi_hauteur_max)
+    plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
+    plt.title(titre + " - distribution selon z")
+    FWMH = (mi_hauteur_max - mi_hauteur_min)
+    m = (mi_hauteur_max + mi_hauteur_min) / 2
+    plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
+    plt.xlabel("axe z ($\mu m$)")
+    plt.show()

@@ -128,11 +128,10 @@ def main(lam, plot):
 
 
 def from_bille(lam, plot, p, Y):
-
-    kernel_size = Y.shape[0]//2
+    kernel_size = Y.shape[0] // 2
     x, y, z = np.mgrid[-kernel_size: kernel_size + Y.shape[0] % 2,
-                       -kernel_size: kernel_size + Y.shape[1] % 2,
-                       -kernel_size: kernel_size + Y.shape[2] % 2]
+              -kernel_size: kernel_size + Y.shape[1] % 2,
+              -kernel_size: kernel_size + Y.shape[2] % 2]
     X = np.stack((x, y, z), axis=3)
 
     # Y, ktrue, p = gen_observation(kernel_size, mutrue, Dtrue, plot)
@@ -146,7 +145,7 @@ def from_bille(lam, plot, p, Y):
     gam = 1
     alpha = 0.01
     t = time.time()
-
+    observation3D.observ_distri(Y, (1.5, 0.5, 0.5), "Bille observée")
     for i in range(1000):
         c = utils.c(D, X, mu, epsD)
         # print(k.shape, p.shape, Y.shape)
@@ -182,5 +181,7 @@ def from_bille(lam, plot, p, Y):
         # observation3D.observ(Y, mutrue[0], "Y")
         observation3D.observ(convolve(p, k, "same"), 0, "im_k")
         observation3D.observ(convolve(p, kargs, "same"), 0, "im_kargs")
-    print()
+
+    observation3D.observ_distri(k, (1.5, 0.5, 0.5), "Noyeau estimé k")
+    observation3D.observ_distri(kargs, (1.5, 0.5, 0.5), "Noyeau estimé kargs")
     return D, mu, kargs, k  # np.linalg.norm(k - ktrue), np.linalg.norm(kargs - ktrue)

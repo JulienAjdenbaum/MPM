@@ -12,7 +12,8 @@ dirs = os.listdir(path_ims)
 for imname in dirs:
     print("opening image : ", imname)
     im = skio.imread(path_ims + imname)
-
+    print(im.shape)
+    while(1): pass
     filter_size = 3
     filter = np.ones((3, 3, 3))
     imfiltered = convolve(im, filter, "same")

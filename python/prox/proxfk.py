@@ -1,27 +1,29 @@
 import numpy as np
 from scipy.signal import convolve
 import math
-
+import prox.utils as utils
 debug = False
 
 
-def prox(y, k, p, c, gam, lam, alph):
+def prox(y, k, p, D, x, mu, eps, gam, lam, alph):
     # print("p@p.T", np.max(p))
-    grad = convolve(convolve(k, p, 'same') - y, p, "same")
-    # grad = convolve(k, p@p.T, "same")-y@p
-    # print("grad = ", np.linalg.norm(grad))
+    grad = convolve(convolve(k, p, 'same') - y, p[::-1, ::-1, ::-1], "same")
     forward = k - alph * grad
     # print("forward = ", np.linalg.norm(forward-k))
     # print("diff", np.linalg.norm(k-forward))
+    c = utils.c(D, x, mu, eps)
     return proxg(forward, c, gam, lam)
 
+# def mylambertw(x):
+#     myprint("deb lambert", np.max(x), np.min(x))
+#     myprint("deb lambert", np.max(np.exp(x)), np.min(np.exp(x)))
+#     v = np.where(x < 1e2, Lambert_W(x), x - np.log(np.maximum(x, 1e-10)))
+#     myprint("fin lambert", np.max(v), np.min(v))
+#     return v
 
-def mylambertw(w_n):
-    myprint("deb lambert", np.max(w_n), np.min(w_n))
-    myprint("deb lambert", np.max(np.exp(w_n)), np.min(np.exp(w_n)))
-    v = np.where(w_n < 1e2, np.real(Lambert_W(np.exp(w_n))), w_n - np.log(np.maximum(w_n, 1e-10)))
-    myprint("fin lambert", np.max(v), np.min(v))
-    return v
+def w(nu, k, c, lamb, gam):
+    # myprint("w :", np.max(c), np.max(k), nu)
+    return -1 - c + (k - nu) / (lamb * gam)
 
 
 def proxg(k, c, gam, lam):
@@ -29,7 +31,10 @@ def proxg(k, c, gam, lam):
     myprint("nu = ", nu)
     nu = nu[-1]
     # print("lamb proxg", np.max(w(nu, k, c, lam, gam)))
-    return np.real(gam * lam * mylambertw(w(nu, k, c, lam, gam) / (lam * gam)))
+    w_n = w(nu, k, c, lam, gam)
+    W = np.where(w_n < 1e2, Lambert_W(np.exp(w_n) / (lam * gam)),
+                 w_n - np.log(lam * gam) - np.log(np.maximum(w_n - np.log(lam * gam), 1e-10)))
+    return gam * lam * W
 
 
 def nu_hat(lamb, gam, k, c):
@@ -69,18 +74,17 @@ def nu_hat(lamb, gam, k, c):
     return nu
 
 
-def w(nu, k, c, lamb, gam):
-    # myprint("w :", np.max(c), np.max(k), nu)
-    return -1 - c + (k - nu) / (lamb * gam)
-
-
 def phi(nu, k, c, lamb, gam):
     myprint("lamb phi", np.max(w(nu, k, c, lamb, gam)))
-    return lamb * gam * np.sum(mylambertw(w(nu, k, c, lamb, gam) / (lamb * gam))) - 1
+    w_n = w(nu, k, c, lamb, gam)
+    W = np.where(w_n < 1e2, Lambert_W(np.exp(w_n) / (lamb * gam)),
+                 w_n - np.log(lamb * gam) - np.log(np.maximum(w_n - np.log(lamb * gam), 1e-10)))
+    return lamb * gam * np.sum(W) - 1
 
 
 def dphi(nu, k, c, lamb, gam):
-    W = mylambertw(w(nu, k, c, lamb, gam) / (lamb * gam))
+    w_n = w(nu, k, c, lamb, gam)
+    W = np.where(w_n < 1e2, Lambert_W(np.exp(w_n)/(lamb*gam)), w_n - np.log(lamb* gam) - np.log(np.maximum(w_n-np.log(lamb* gam), 1e-10)))
     myprint("W dphi", np.max(W), "  ", np.min(W))
     myprint("retour dphi", -np.sum(W / (1 + W)))
     return -np.sum(W / (1 + W)) / (lamb * gam)

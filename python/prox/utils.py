@@ -1,5 +1,6 @@
 import numpy as np
 from .proxfk import myprint
+from scipy.signal import convolve
 
 
 def c(D, x, mu, eps):
@@ -10,14 +11,14 @@ def c(D, x, mu, eps):
 
 
 def miniphi(D, eps):
-    if check_symmetric(D):
-        return np.log(np.linalg.det(D + eps * np.eye(3)))
-    else:
-        raise Exception('D isn\'t symmetric')
+    # if check_symmetric(D):
+    return np.log(np.linalg.det(D + eps * np.eye(3)))
+    # else:
+    #     raise Exception('D isn\'t symmetric')
 
-
-def check_symmetric(a, rtol=1e-05, atol=1e-08):
-    return np.allclose(a, a.T, rtol=rtol, atol=atol)
+#
+# def check_symmetric(a, rtol=1e-05, atol=1e-08):
+#     return np.allclose(a, a.T, rtol=rtol, atol=atol)
 
 
 def get_barycentre(im):
@@ -28,3 +29,11 @@ def get_barycentre(im):
     yg = np.sum(np.multiply(yi, im)) / np.sum(im)
     zg = np.sum(np.multiply(zi, im)) / np.sum(im)
     return xg, yg, zg
+
+
+def get_a(im):
+    size = 2
+    kernel = np.ones((size, size, size))/size**3
+    im_flou = convolve(im, kernel, "same")
+    return np.max(im_flou)
+

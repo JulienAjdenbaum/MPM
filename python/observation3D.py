@@ -95,13 +95,10 @@ def observ_distri(values, resolutions, titre):
     plt.show()
     plt.plot(idz, values[:, centre[1], centre[2]])
     mi_hauteur = 0.5 * np.max(values[:, centre[1], centre[2]])
-    print(mi_hauteur)
     mi_hauteur_min = np.min(np.argwhere(values[:, centre[1], centre[2]] >= mi_hauteur)) - 0.5
     mi_hauteur_max = np.max(np.argwhere(values[:, centre[1], centre[2]] >= mi_hauteur)) + 0.5
     mi_hauteur_min = (mi_hauteur_min - centre[0]) * resolutions[0]
     mi_hauteur_max = (mi_hauteur_max - centre[0]) * resolutions[0]
-    print(mi_hauteur_min)
-    print(mi_hauteur_max)
     plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
     plt.title(titre + " - distribution selon z")
     FWMH = (mi_hauteur_max - mi_hauteur_min)

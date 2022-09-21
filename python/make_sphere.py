@@ -1,10 +1,11 @@
 import numpy as np
+import global_variables as gv
 
-
-def make_sphere(sphere_size, volume_size, interpolated, a=1):
+def make_sphere(sphere_size, volume_size, a=1):
     rayon = sphere_size//2
     x, y, z = np.mgrid[- volume_size: volume_size + 1, -volume_size: volume_size + 1, - volume_size: volume_size + 1]
-    if interpolated:
+    if gv.interpolated:
+        raise Exception('interpolated is True')
         sphere = np.zeros((x.shape[0], y.shape[0], z.shape[0]))
         for i in range(x.shape[0]):
             for j in range(x.shape[0]):

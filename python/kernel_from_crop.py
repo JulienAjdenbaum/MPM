@@ -4,10 +4,11 @@ from skimage import measure
 from scipy.signal import convolve, deconvolve
 import numpy as np
 from make_sphere import make_sphere
-from observation3D import observ
+from observation3D import observ, observ_distri
 from main import from_bille, kernel, gen_observation
 from prox.utils import get_barycentre, get_a
 import time
+import global_variables as gv
 import scipy
 
 #%%
@@ -42,7 +43,7 @@ def pad(im):
     return im_new
 
 
-def pipeline(im, real_sphere_size, _lambda, plot, reel):
+def pipeline(im, real_sphere_size, _lambda, reel):
     # im = im/np.max(im)
     a = get_a(im)
     print('a = ', a)
@@ -50,20 +51,20 @@ def pipeline(im, real_sphere_size, _lambda, plot, reel):
         im = im/a
         print(np.max(im))
     im = pad(im)
-    if plot:
+    if gv.plot:
         observ(im, 0, "image")
-    p = make_sphere(real_sphere_size, im.shape[0]//2, True, a=1)
+    p = make_sphere(real_sphere_size, im.shape[0]//2, a=1)
     # observ(p, 0, 'p')
     # observ(im, 0, "im")
-    return from_bille(_lambda, True, p, im)
+    return from_bille(_lambda, p, im)
 
 
 t = time.time()
-plot = False
-real_sphere_size = 2/0.5
+sphere_size_pixels = gv.sphere_size/gv.resolution[0]
+print(sphere_size_pixels)
 kernel_size = 10
 
-reel = True
+reel = False
 simulation = not reel
 
 if reel:
@@ -71,15 +72,15 @@ if reel:
     Y = skio.imread(crop_file)
 
 if simulation:
-    C = np.array([1, 1, 5])
+    C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
     mutrue = np.array([0, 0, 0])
-    angle = np.array([np.pi / 4, 0, -np.pi / 6])
+    angle = np.array([0, 0, 0])
     Dtrue = kernel.genD(angle, C)
     print(Dtrue)
-    Y, ktrue, p = gen_observation(kernel_size, real_sphere_size, mutrue, Dtrue, plot, sigma_noise=0.2)
+    Y, ktrue, p = gen_observation(kernel_size, sphere_size_pixels, mutrue, Dtrue, sigma_noise=0)
 
 lamb = 1
-chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y, real_sphere_size, lamb, plot, reel)
+chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y, sphere_size_pixels, lamb, reel)
 if simulation:
     observ(ktrue, 0, "ktrue")
 
@@ -87,3 +88,4 @@ if simulation:
 observ(k_args, 0, "kargs")
 observ(chosen_k, 0, "k_est")
 observ(convolve(k_args, p, "same"), 0, "k convolué avec p")
+observ_distri(k_args, gv.resolution, 'k_args distribution')

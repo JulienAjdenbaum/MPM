@@ -11,24 +11,24 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib import rc
 # from skimage import io as skio
-
+import global_variables as gv
 rc('text', usetex=True)
 
 
 # np.random.seed(0)
 
-def gen_observation(kernel_size, sphere_size, kernel_mu, kernel_D, plot_observation, a=1, sigma_noise = 0.2):
-    my_sphere = make_sphere.make_sphere(sphere_size, kernel_size, True, a=a)
+def gen_observation(kernel_size, sphere_size, kernel_mu, kernel_D, a=1, sigma_noise = 0.2):
+    my_sphere = make_sphere.make_sphere(sphere_size, kernel_size, a=a)
     generated_k = kernel.gaussian_kernel(kernel_size, kernel_D, kernel_mu)
     im = convolve(my_sphere, generated_k, 'same')
-    # if plot_observation:
-    #     observation3D.observ(my_sphere, 0, "Grosse bille")
-    #     observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
-    #     observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
+    if gv.plot:
+        observation3D.observ(my_sphere, 0, "Grosse bille")
+        observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
+        observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
 
     im += np.random.randn(im.shape[0], im.shape[1], im.shape[2]) * sigma_noise
-    if plot_observation:
-        observation3D.observ(im, kernel_mu[0], "Bille convoluée bruitée")
+    # if plot_observation:
+    #     observation3D.observ(im, kernel_mu[0], "Bille convoluée bruitée")
     #     observation3D.observ(my_sphere)
     #     observation3D.observ(im)
     return im, generated_k, my_sphere
@@ -116,7 +116,7 @@ def gen_observation(kernel_size, sphere_size, kernel_mu, kernel_D, plot_observat
 # observation3D.observ(im, 0, "bille")
 
 
-def from_bille(lam, plot, p, Y):
+def from_bille(lam, p, Y):
     kernel_size = Y.shape[0] // 2
     x, y, z = np.mgrid[-kernel_size: kernel_size + Y.shape[0] % 2,
               -kernel_size: kernel_size + Y.shape[1] % 2,
@@ -131,8 +131,8 @@ def from_bille(lam, plot, p, Y):
     # observation3D.observ(k)
 
     epsD = 1e-8
-    gam = 1
-    alpha = 0.01
+    gamC = 1
+    gammu = 1
     t = time.time()
     # if plot:
     #     observation3D.observ_distri(Y, (1.5, 0.5, 0.5), "Bille observée")
@@ -140,9 +140,9 @@ def from_bille(lam, plot, p, Y):
     norms_new_list = []
     for i in range(3000):
         # print(k.shape, p.shape, Y.shape)
-        newk = proxfk.prox(Y, k, p, D, X, mu, epsD, gam, lam, alpha)
-        newmu = proxfmu.prox(X, newk, D, mu, gam, lam, epsD)
-        newD = proxd.prox(D, newk, X, newmu, epsD, lam, gam)
+        newk = proxfk.prox(Y, k, p, D, X, mu, epsD)
+        newmu = proxfmu.prox(X, newk, D, mu, gammu, lam, epsD)
+        newD = proxd.prox(D, newk, X, newmu, epsD, lam, gamC)
         if i % 30 == 0:
             # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
             # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))

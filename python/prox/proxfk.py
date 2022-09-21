@@ -2,10 +2,14 @@ import numpy as np
 from scipy.signal import convolve
 import math
 import prox.utils as utils
+import global_variables as gv
 debug = False
 
 
-def prox(y, k, p, D, x, mu, eps, gam, lam, alph):
+def prox(y, k, p, D, x, mu, eps):
+    lam = gv._lambda
+    alph = gv.alpha
+    gam = gv.gam_k
     # print("p@p.T", np.max(p))
     grad = convolve(convolve(k, p, 'same') - y, p[::-1, ::-1, ::-1], "same")
     forward = k - alph * grad

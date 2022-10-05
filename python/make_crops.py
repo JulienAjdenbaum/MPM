@@ -5,20 +5,19 @@ import numpy as np
 import os
 import shutil
 
-path_ims = '/home/julin/Documents/imbilles/1um/'
-path_crops = '/home/julin/Documents/imbilles/crops/1um/'
+path_ims = '/home/julin/Documents/imbilles/1um2/'
+path_crops = '/home/julin/Documents/imbilles/crops/1um2/'
 dirs = os.listdir(path_ims)
 
 for imname in dirs:
     print("opening image : ", imname)
     im = skio.imread(path_ims + imname)
     print(im.shape)
-    while(1): pass
     filter_size = 3
     filter = np.ones((3, 3, 3))
     imfiltered = convolve(im, filter, "same")
-
-    seuil = 0.1
+    print(np.min(imfiltered))
+    seuil = 2000
     imfiltered[imfiltered < seuil] = 0
     imfiltered[imfiltered > seuil] = 1
 

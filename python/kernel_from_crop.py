@@ -50,10 +50,10 @@ def pipeline(im, real_sphere_size, _lambda, reel):
     if reel:
         im = im/a
         print(np.max(im))
-    im = pad(im)
+    # im = pad(im)
     if gv.plot:
         observ(im, 0, "image")
-    p = make_sphere(real_sphere_size, im.shape[0]//2, a=1)
+    p = make_sphere(real_sphere_size, np.array(im.shape)//2, a=1)
     # observ(p, 0, 'p')
     # observ(im, 0, "im")
     return from_bille(_lambda, p, im)
@@ -62,13 +62,14 @@ def pipeline(im, real_sphere_size, _lambda, reel):
 t = time.time()
 sphere_size_pixels = gv.sphere_size/gv.resolution[0]
 print(sphere_size_pixels)
-kernel_size = 10
+kernel_size = (110, 25, 25)
 
 reel = False
 simulation = not reel
 
 if reel:
     crop_file = '/home/julin/Documents/imbilles/crops/4um/1_max_810_575-630_4um_Pmax_500V_3X_10_0.497umx_0.5z/2.tif'
+    crop_file = '/home/julin/Documents/imbilles/crops/1um2/860_495-540_0.049xy_0.5z_2/0.tif'
     Y = skio.imread(crop_file)
 
 if simulation:

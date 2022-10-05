@@ -117,10 +117,10 @@ def gen_observation(kernel_size, sphere_size, kernel_mu, kernel_D, a=1, sigma_no
 
 
 def from_bille(lam, p, Y):
-    kernel_size = Y.shape[0] // 2
-    x, y, z = np.mgrid[-kernel_size: kernel_size + Y.shape[0] % 2,
-              -kernel_size: kernel_size + Y.shape[1] % 2,
-              -kernel_size: kernel_size + Y.shape[2] % 2]
+    kernel_size = np.array(Y.shape) // 2
+    x, y, z = np.mgrid[-kernel_size[0]: kernel_size[0] + Y.shape[0] % 2,
+              -kernel_size[1]: kernel_size[1] + Y.shape[1] % 2,
+              -kernel_size[2]: kernel_size[2] + Y.shape[2] % 2]
     X = np.stack((x, y, z), axis=3)
 
     # Y, ktrue, p = gen_observation(kernel_size, mutrue, Dtrue, plot)

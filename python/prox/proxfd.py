@@ -3,7 +3,7 @@ import numpy as np
 
 def prox(D, k, x, mu, eps, lam, gam):
     xmu = x - mu
-    xmu = xmu.reshape(xmu.shape[0] ** 3, 3, 1)
+    xmu = xmu.reshape(xmu.shape[0] * xmu.shape[1] * xmu.shape[2], 3, 1)
     kflat = k.copy().flatten()
     m = 1 / 2 * lam * gam * np.sum(kflat)
     S = 1 / 2 * lam * gam * np.einsum('a, aij, akj -> ik', kflat, xmu, xmu)

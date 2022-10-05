@@ -1,7 +1,8 @@
 import numpy as np
+import global_variables as gv
 
-
-def prox(D, k, x, mu, eps, lam, gam):
+def prox(D, k, x, mu, eps, lam):
+    gam = gv.gam_D
     xmu = x - mu
     xmu = xmu.reshape(xmu.shape[0] * xmu.shape[1] * xmu.shape[2], 3, 1)
     kflat = k.copy().flatten()

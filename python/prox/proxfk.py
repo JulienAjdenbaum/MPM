@@ -3,15 +3,20 @@ from scipy.signal import convolve
 import math
 import prox.utils as utils
 import global_variables as gv
-debug = False
 
-
-def prox(y, k, p, D, x, mu, eps):
+def prox(y, k, p, a, b, D, x, mu, eps):
     lam = gv._lambda
     alph = gv.alpha
     gam = gv.gam_k
     # print("p@p.T", np.max(p))
-    grad = convolve(convolve(k, p, 'same') - y, p[::-1, ::-1, ::-1], "same")
+    b = 1
+    a = 0
+    # print(y.shape)
+    # print(convolve(k, p, 'same').shape)
+    # print(k.shape)
+    # print(p.shape)
+    grad = convolve(b**2*convolve(k, p, 'same') + a*b - b*y, p[::-1, ::-1, ::-1], "same")
+
     forward = k - alph * grad
     # print("forward = ", np.linalg.norm(forward-k))
     # print("diff", np.linalg.norm(k-forward))
@@ -27,7 +32,7 @@ def prox(y, k, p, D, x, mu, eps):
 
 def w(nu, k, c, lamb, gam):
     # myprint("w :", np.max(c), np.max(k), nu)
-    return -1 - c + (k - nu) / (lamb * gam)
+    return -1 - c + k / (lamb * gam) - nu/(lamb*gam)
 
 
 def proxg(k, c, gam, lam):
@@ -35,9 +40,7 @@ def proxg(k, c, gam, lam):
     myprint("nu = ", nu)
     nu = nu[-1]
     # print("lamb proxg", np.max(w(nu, k, c, lam, gam)))
-    w_n = w(nu, k, c, lam, gam)
-    W = np.where(w_n < 1e2, Lambert_W(np.exp(w_n) / (lam * gam)),
-                 w_n - np.log(lam * gam) - np.log(np.maximum(w_n - np.log(lam * gam), 1e-10)))
+    W = ProxEntropyNu(k, gam, lam, c, nu)
     return gam * lam * W
 
 
@@ -48,9 +51,13 @@ def nu_hat(lamb, gam, k, c):
     epsilon = 1e-9
     maxIter = 10000
     nIter = 0
-    nu = [1e-5]
+    nu = [0]
+    mycnt = 0
     while True:
-        myprint(nu)
+        mycnt += 1
+        # if mycnt == 100:
+        #     while 1: pass
+        myprint("nu = ", nu, mycnt)
         nIter += 1
         fi = phi(nu[-1], k, c, lamb, gam)
         dfi = dphi(nu[-1], k, c, lamb, gam)
@@ -60,7 +67,7 @@ def nu_hat(lamb, gam, k, c):
             break
         # print(phi(nu[-1], k, c, lamb, gam)/dfi)
         # if dfi != 0:
-        newNu = nu[-1] - fi / dfi
+        newNu = nu[-1] - fi / (dfi)
         # else: newNu = 100000
         nu.append(newNu)
         # print("nuuuuuuuu", nu[-1])
@@ -74,24 +81,23 @@ def nu_hat(lamb, gam, k, c):
             raise Exception('nu is nan :(')
         if nIter > maxIter or np.abs(nu[-1] - nu[-2]) < epsilon:
             break
-    myprint(nu)
+    myprint("nu = ", nu)
+    myprint("pĥi(nu)", phi(nu[-1], k, c, lamb, gam))
     return nu
 
 
 def phi(nu, k, c, lamb, gam):
     myprint("lamb phi", np.max(w(nu, k, c, lamb, gam)))
-    w_n = w(nu, k, c, lamb, gam)
-    W = np.where(w_n < 1e2, Lambert_W(np.exp(w_n) / (lamb * gam)),
-                 w_n - np.log(lamb * gam) - np.log(np.maximum(w_n - np.log(lamb * gam), 1e-10)))
+    W = ProxEntropyNu(k, gam, lamb, c, nu)
     return lamb * gam * np.sum(W) - 1
 
 
 def dphi(nu, k, c, lamb, gam):
-    w_n = w(nu, k, c, lamb, gam)
-    W = np.where(w_n < 1e2, Lambert_W(np.exp(w_n)/(lamb*gam)), w_n - np.log(lamb* gam) - np.log(np.maximum(w_n-np.log(lamb* gam), 1e-10)))
+    myprint(nu, lamb, gam)
+    W = ProxEntropyNu(k, gam, lamb, c, nu)
     myprint("W dphi", np.max(W), "  ", np.min(W))
     myprint("retour dphi", -np.sum(W / (1 + W)))
-    return -np.sum(W / (1 + W)) / (lamb * gam)
+    return -np.sum(1-1 / (1 + W))
 
 
 def Lambert_W(v):
@@ -109,7 +115,22 @@ def Lambert_W(v):
 
 
 def myprint(*args):
-    if debug:
+    if gv.debug:
         for i in args:
             print(i, end=" ")
         print()
+
+def ProxEntropyNu(k, gam, lam, c, nu):
+    # np.where(w_n < 1e2, Lambert_W(np.exp(w_n) / (lam * gam)),
+    #          w_n - np.log(lam * gam) - np.log(w_n - np.log(lam * gam)))
+    limit = 200
+    rho1 = 1/(lam*gam)
+    rho2 = w(nu, k, c, lam, gam)
+    myprint("W ", np.max(rho2), np.min(rho2))
+    tau = rho2 + np.log(rho1)
+    U = tau*(1 - np.log(tau)/(1+tau))
+    myprint("U ", np.max(U), np.min(U))
+    U[tau < limit] = Lambert_W(np.exp(tau[tau < limit]))
+
+    myprint("U2 ", np.max(U), np.min(U))
+    return U

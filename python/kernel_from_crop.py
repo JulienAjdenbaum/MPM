@@ -45,44 +45,42 @@ def pad(im):
 
 def pipeline(im, real_sphere_size, _lambda, reel):
     # im = im/np.max(im)
-    a = get_a(im)
-    print('a = ', a)
-    if reel:
-        im = im/a
-        print(np.max(im))
+    # a = get_a(im)
+    # print('a = ', a)
+    # if reel:
+    #     im = im/a
+    #     print(np.max(im))
     # im = pad(im)
     if gv.plot:
         observ(im, 0, "image")
-    p = make_sphere(real_sphere_size, np.array(im.shape)//2, a=1)
+    p = make_sphere()
     # observ(p, 0, 'p')
     # observ(im, 0, "im")
     return from_bille(_lambda, p, im)
 
 
 t = time.time()
-sphere_size_pixels = gv.sphere_size/gv.resolution[0]
-print(sphere_size_pixels)
-kernel_size = (110, 25, 25)
 
-reel = False
-simulation = not reel
-
-if reel:
+if gv.reel:
     crop_file = '/home/julin/Documents/imbilles/crops/4um/1_max_810_575-630_4um_Pmax_500V_3X_10_0.497umx_0.5z/2.tif'
     crop_file = '/home/julin/Documents/imbilles/crops/1um2/860_495-540_0.049xy_0.5z_2/0.tif'
-    Y = skio.imread(crop_file)
 
-if simulation:
+    Y = skio.imread(crop_file)
+    gv.kernel_size = np.array(Y.shape)
+
+if gv.simulation:
     C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
-    mutrue = np.array([0, 0, 0])
+    # C = np.array([1, 1, 5])
     angle = np.array([0, 0, 0])
+    # angle = np.array([np.pi / 4,
+    #                   0, -np.pi / 6])
+    mutrue = np.array([0, 0, 0])
     Dtrue = kernel.genD(angle, C)
-    print(Dtrue)
-    Y, ktrue, p = gen_observation(kernel_size, sphere_size_pixels, mutrue, Dtrue, sigma_noise=0)
+    Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=0)
 
 lamb = 1
-chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y, sphere_size_pixels, lamb, reel)
-if simulation:
+chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y, lamb, gv.reel)
+if gv.simulation:
     observ(ktrue, 0, "ktrue")
 
 

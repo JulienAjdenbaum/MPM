@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from mayavi import mlab
 from matplotlib import rc
 from prox.utils import get_barycentre
+import prox.utils as utils
 
 rc('text', usetex=True)
 
@@ -46,12 +47,7 @@ def observcoupe(values, center, title):
 
 def observ(values, center, title):
     observcoupe(values, center, title)
-    kernel_sizex = values.shape[0] // 2
-    kernel_sizey = values.shape[1] // 2
-    kernel_sizez = values.shape[2] // 2
-    xi, yi, zi = np.mgrid[-kernel_sizex: kernel_sizex + values.shape[0] % 2,
-                 -kernel_sizey: kernel_sizey + values.shape[1] % 2,
-                 -kernel_sizez: kernel_sizez + values.shape[2] % 2]
+    xi, yi, zi, Xi = utils.mymgrid()
     density = values[xi, yi, zi]
     grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
     mini = density.min()

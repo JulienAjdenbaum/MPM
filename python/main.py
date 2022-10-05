@@ -3,9 +3,12 @@ from scipy.signal import convolve
 import make_sphere
 import kernel
 import observation3D
-import prox.proxfd as proxd
+
+import prox.proxfa as proxfa
+import prox.proxfb as proxfb
 import prox.proxfk as proxfk
 import prox.proxfmu as proxfmu
+import prox.proxfd as proxfd
 import prox.utils as utils
 import time
 import matplotlib.pyplot as plt
@@ -17,10 +20,10 @@ rc('text', usetex=True)
 
 # np.random.seed(0)
 
-def gen_observation(kernel_size, sphere_size, kernel_mu, kernel_D, a=1, sigma_noise = 0.2):
-    my_sphere = make_sphere.make_sphere(sphere_size, kernel_size, a=a)
-    generated_k = kernel.gaussian_kernel(kernel_size, kernel_D, kernel_mu)
-    im = convolve(my_sphere, generated_k, 'same')
+def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
+    my_sphere = make_sphere.make_sphere()
+    generated_k = kernel.gaussian_kernel(kernel_D, kernel_mu)
+    im = gv.a_sim + gv.b_sim*convolve(my_sphere, generated_k, 'same')
     if gv.plot:
         observation3D.observ(my_sphere, 0, "Grosse bille")
         observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
@@ -117,41 +120,42 @@ def gen_observation(kernel_size, sphere_size, kernel_mu, kernel_D, a=1, sigma_no
 
 
 def from_bille(lam, p, Y):
-    kernel_size = np.array(Y.shape) // 2
-    x, y, z = np.mgrid[-kernel_size[0]: kernel_size[0] + Y.shape[0] % 2,
-              -kernel_size[1]: kernel_size[1] + Y.shape[1] % 2,
-              -kernel_size[2]: kernel_size[2] + Y.shape[2] % 2]
-    X = np.stack((x, y, z), axis=3)
-
+    x, y, z, X = utils.mymgrid()
+    print('x', X.shape)
     # Y, ktrue, p = gen_observation(kernel_size, mutrue, Dtrue, plot)
 
     D = np.eye(3)
-    k = kernel.gaussian_kernel(kernel_size, np.diag([1, 1, 1]), [0, 0, 0])
+    k = kernel.gaussian_kernel(np.diag([1, 1, 1]), [0, 0, 0])
     mu = [0, 0, 0]
+    a = 0
+    b = 1
     # observation3D.observ(k)
 
     epsD = 1e-8
-    gamC = 1
-    gammu = 1
     t = time.time()
     # if plot:
     #     observation3D.observ_distri(Y, (1.5, 0.5, 0.5), "Bille observée")
     i_list = []
     norms_new_list = []
     for i in range(3000):
-        # print(k.shape, p.shape, Y.shape)
-        newk = proxfk.prox(Y, k, p, D, X, mu, epsD)
-        newmu = proxfmu.prox(X, newk, D, mu, gammu, lam, epsD)
-        newD = proxd.prox(D, newk, X, newmu, epsD, lam, gamC)
-        if i % 30 == 0:
+        newk = proxfk.prox(Y, k, p, a, b, D, X, mu, epsD)
+        newmu = proxfmu.prox(X, newk, D, mu, lam, epsD)
+        newD = proxfd.prox(D, newk, X, newmu, epsD, lam)
+
+        if i % 3 == 0:
             # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
             # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
             print("\niteration : ", i, "lambda  ", lam,
                   "\n k-newk", np.linalg.norm(k - newk),
                   "\n mu-newmu", np.linalg.norm(mu - newmu),
                   "\n D-newD", np.linalg.norm(D - newD),
+                  # "\n a-newa", np.linalg.norm(a - newa),
+                  # "\n b-newb", np.linalg.norm(b - newb),
                   "\n max k, min k", np.max(newk), np.min(newk),
+                  # "\n a est", a,
+                  # "\n b est", b,
                   "\n mu est", newmu)
+            # print(np.round(newD, 3))
             print(newD)
         i_list.append(i)
         # norm_list.append(np.linalg.norm(D-Dtrue))

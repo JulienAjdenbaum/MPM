@@ -46,9 +46,14 @@ for imname in dirs:
         locs = np.argwhere(labels == selected_region)
         xmin, ymin, zmin = np.min(locs, axis=0)
         xmax, ymax, zmax = np.max(locs, axis=0)
+        if xmax - xmin % 2 == 1:
+            xmax += 1
+        if ymax - ymin % 2 == 1:
+            ymax += 1
+        if zmax - zmin % 2 == 1:
+            zmax += 1
         im_croped = im[xmin:xmax, ymin:ymax, zmin:zmax]
         print("region :", i, "size :", im_croped.flatten().shape[0])
 
         print(os.listdir())
         skio.imsave(path_crops + imname[:-4] + "/" + str(i) + ".tif", im_croped)
-

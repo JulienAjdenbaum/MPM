@@ -1,6 +1,6 @@
 import numpy as np
 from .proxfk import myprint
-from scipy.signal import convolve
+from scipy.signal import fftconvolve
 import global_variables as gv
 
 def c(D, x, mu, eps):
@@ -34,7 +34,7 @@ def get_barycentre(im):
 def get_a(im):
     size = 2
     kernel = np.ones((size, size, size))/size**3
-    im_flou = convolve(im, kernel, "same")
+    im_flou = fftconvolve(im, kernel, "same")
     return np.max(im_flou)
 
 

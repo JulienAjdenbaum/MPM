@@ -4,6 +4,7 @@ from mayavi import mlab
 from matplotlib import rc
 from prox.utils import get_barycentre
 import prox.utils as utils
+import global_variables as gv
 
 rc('text', usetex=True)
 
@@ -37,11 +38,17 @@ rc('text', usetex=True)
 #     print("ploted")
 
 def observcoupe(values, center, title):
-    plt.imshow(values[:, values.shape[1] // 2 + center, :])
+    plt.imshow(values[:, values.shape[1] // 2 + center, :],
+               extent=[0, values.shape[2]*gv.resolution[2], 0, values.shape[0]*gv.resolution[0]])
     plt.title(title + " - vue latérale ")
+    plt.xlabel("axe y ($\mu m$)")
+    plt.ylabel("axe z ($\mu m$)")
     plt.show()
-    plt.imshow(values[values.shape[0] // 2 + center, :, :])
+    plt.imshow(values[values.shape[0] // 2 + center, :, :],
+               extent=[0, values.shape[1]*gv.resolution[1], 0, values.shape[2]*gv.resolution[2]])
     plt.title(title + " - vue du dessus")
+    plt.xlabel("axe x ($\mu m$)")
+    plt.ylabel("axe y ($\mu m$)")
     plt.show()
 
 

@@ -2,9 +2,7 @@ import numpy as np
 import prox.utils as utils
 
 def genD(theta, var):
-    Rx = np.array([[1, 0, 0],
-                   [0, np.cos(theta[0]), -np.sin(theta[0])],
-                   [0, np.sin(theta[0]), np.cos(theta[0])]])
+    Rx = np.array([[1, 0, 0], [0, np.cos(theta[0]), -np.sin(theta[0])], [0, np.sin(theta[0]), np.cos(theta[0])]])
     Ry = np.array([[np.cos(theta[1]), 0, np.sin(theta[1])],
                    [0, 1, 0],
                    [-np.sin(theta[1]), 0, np.cos(theta[1])]])
@@ -14,6 +12,7 @@ def genD(theta, var):
                    [0, 0, 1]])
 
     R = Rx @ Ry @ Rz
+    # R = np.eye(3)
     print()
     return np.linalg.inv(R @ np.diag(var.T) @ R.T)
 

@@ -1,21 +1,26 @@
 import numpy as np
-from scipy.signal import convolve
+from scipy.signal import fftconvolve
 import math
 import prox.utils as utils
 import global_variables as gv
+from scipy.special import lambertw
 
-def prox(y, k, p, a, b, D, x, mu, eps):
+def prox(y, k, p, convo, a, b, D, x, mu, eps):
     lam = gv._lambda
     alph = gv.alpha
     gam = gv.gam_k
     # print("p@p.T", np.max(p))
-    b = 1
-    a = 0
+    # b = 1
+    # a = 0
     # print(y.shape)
-    # print(convolve(k, p, 'same').shape)
+    # print(fftconvolve(k, p, 'same').shape)
     # print(k.shape)
     # print(p.shape)
-    grad = convolve(b**2*convolve(k, p, 'same') + a*b - b*y, p[::-1, ::-1, ::-1], "same")
+    # print()
+    # print(a)
+    # print(b)
+
+    grad = fftconvolve(b**2*convo + b*a - b*y, p[::-1, ::-1, ::-1], "same")
 
     forward = k - alph * grad
     # print("forward = ", np.linalg.norm(forward-k))
@@ -32,7 +37,7 @@ def prox(y, k, p, a, b, D, x, mu, eps):
 
 def w(nu, k, c, lamb, gam):
     # myprint("w :", np.max(c), np.max(k), nu)
-    return -1 - c + k / (lamb * gam) - nu/(lamb*gam)
+    return -1 - c + (k -nu) / (lamb * gam)
 
 
 def proxg(k, c, gam, lam):
@@ -128,6 +133,7 @@ def ProxEntropyNu(k, gam, lam, c, nu):
     rho2 = w(nu, k, c, lam, gam)
     myprint("W ", np.max(rho2), np.min(rho2))
     tau = rho2 + np.log(rho1)
+    # print(tau)
     U = tau*(1 - np.log(tau)/(1+tau))
     myprint("U ", np.max(U), np.min(U))
     U[tau < limit] = Lambert_W(np.exp(tau[tau < limit]))

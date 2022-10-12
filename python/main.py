@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.signal import convolve
+from scipy.signal import fftconvolve
 import make_sphere
 import kernel
 import observation3D
@@ -15,6 +15,8 @@ import matplotlib.pyplot as plt
 from matplotlib import rc
 # from skimage import io as skio
 import global_variables as gv
+from scipy.fft import fftn
+
 rc('text', usetex=True)
 
 
@@ -23,7 +25,7 @@ rc('text', usetex=True)
 def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
     my_sphere = make_sphere.make_sphere()
     generated_k = kernel.gaussian_kernel(kernel_D, kernel_mu)
-    im = gv.a_sim + gv.b_sim*convolve(my_sphere, generated_k, 'same')
+    im = gv.a_sim + gv.b_sim*fftconvolve(my_sphere, generated_k, 'same')
     if gv.plot:
         observation3D.observ(my_sphere, 0, "Grosse bille")
         observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
@@ -94,8 +96,8 @@ def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
 #         observation3D.observ(kargs, mutrue[0], "Estimation du Noyau")
 #         observation3D.observ(k, mutrue[0], "Noyau estimé à partir des paramètres")
 #         # observation3D.observ(Y, mutrue[0], "Y")
-#         observation3D.observ(convolve(p, k, "same"), mutrue[0], "im_k")
-#         observation3D.observ(convolve(p, kargs, "same"), mutrue[0], "im_kargs")
+#         observation3D.observ(fftconvolve(p, k, "same"), mutrue[0], "im_k")
+#         observation3D.observ(fftconvolve(p, kargs, "same"), mutrue[0], "im_kargs")
 #     print()
 #     return D, mu, kargs, k, np.linalg.norm(k - ktrue), np.linalg.norm(kargs - ktrue)
 # X_plot = []
@@ -119,17 +121,20 @@ def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
 # observation3D.observ(im, 0, "bille")
 
 
-def from_bille(lam, p, Y):
+def from_bille(p, Y):
     x, y, z, X = utils.mymgrid()
     print('x', X.shape)
     # Y, ktrue, p = gen_observation(kernel_size, mutrue, Dtrue, plot)
-
+    gv.alpha = 1/(2*np.max(np.abs(fftn(p)))**2)
+    gv.gam_k = gv.alpha
+    print("valeur de alpha : ", gv.alpha)
     D = np.eye(3)
     k = kernel.gaussian_kernel(np.diag([1, 1, 1]), [0, 0, 0])
     mu = [0, 0, 0]
     a = 0
     b = 1
-    # observation3D.observ(k)
+    # if gv.plot:
+    #     observation3D.observ(k, 0, "k0")
 
     epsD = 1e-8
     t = time.time()
@@ -137,23 +142,26 @@ def from_bille(lam, p, Y):
     #     observation3D.observ_distri(Y, (1.5, 0.5, 0.5), "Bille observée")
     i_list = []
     norms_new_list = []
-    for i in range(3000):
-        newk = proxfk.prox(Y, k, p, a, b, D, X, mu, epsD)
-        newmu = proxfmu.prox(X, newk, D, mu, lam, epsD)
-        newD = proxfd.prox(D, newk, X, newmu, epsD, lam)
+    for i in range(gv.n_iter):
+        convo = fftconvolve(k, p, "same")
+        newa = proxfa.prox(a, b, Y, convo)
+        newb = proxfb.prox(newa, b, Y, convo)
+        newk = proxfk.prox(Y, k, p, convo, newa, newb, D, X, mu, epsD)
+        newmu = proxfmu.prox(X, newk, D, mu, gv._lambda, epsD)
+        newD = proxfd.prox(D, newk, X, newmu, epsD, gv._lambda)
 
-        if i % 3 == 0:
+        if i % 20 == 0:
             # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
             # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
-            print("\niteration : ", i, "lambda  ", lam,
+            print("\niteration : ", i, "lambda  ", gv._lambda,
                   "\n k-newk", np.linalg.norm(k - newk),
                   "\n mu-newmu", np.linalg.norm(mu - newmu),
                   "\n D-newD", np.linalg.norm(D - newD),
-                  # "\n a-newa", np.linalg.norm(a - newa),
-                  # "\n b-newb", np.linalg.norm(b - newb),
+                  "\n a-newa", np.linalg.norm(a - newa),
+                  "\n b-newb", np.linalg.norm(b - newb),
                   "\n max k, min k", np.max(newk), np.min(newk),
-                  # "\n a est", a,
-                  # "\n b est", b,
+                  "\n a est", newa,
+                  "\n b est", newb,
                   "\n mu est", newmu)
             # print(np.round(newD, 3))
             print(newD)
@@ -163,7 +171,7 @@ def from_bille(lam, p, Y):
         if np.linalg.norm(k - newk) + np.linalg.norm(mu - newmu) + np.linalg.norm(D - newD) < 1e-6:
             print("last iteration :", i)
             break
-        k, mu, D = newk, newmu, newD
+        a, b, k, mu, D = newa, newb, newk, newmu, newD
 
     plt.plot(i_list, norms_new_list)
     plt.xlabel("Itérations")
@@ -175,6 +183,6 @@ def from_bille(lam, p, Y):
     print("D est", np.round(D, 3))
     print("mu est", np.round(mu, 2))
 
-    kargs = kernel.gaussian_kernel(kernel_size, D, mu)
+    kargs = kernel.gaussian_kernel(D, mu)
 
     return D, mu, kargs, k, p

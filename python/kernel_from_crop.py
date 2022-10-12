@@ -1,7 +1,7 @@
 
 from skimage import io as skio
 from skimage import measure
-from scipy.signal import convolve, deconvolve
+from scipy.signal import fftconvolve
 import numpy as np
 from make_sphere import make_sphere
 from observation3D import observ, observ_distri
@@ -43,7 +43,7 @@ def pad(im):
     return im_new
 
 
-def pipeline(im, real_sphere_size, _lambda, reel):
+def pipeline(im):
     # im = im/np.max(im)
     # a = get_a(im)
     # print('a = ', a)
@@ -54,9 +54,10 @@ def pipeline(im, real_sphere_size, _lambda, reel):
     if gv.plot:
         observ(im, 0, "image")
     p = make_sphere()
-    # observ(p, 0, 'p')
-    # observ(im, 0, "im")
-    return from_bille(_lambda, p, im)
+    if gv.plot:
+        observ(p, 0, 'p')
+        # observ(im, 0, "im")
+    return from_bille(p, im)
 
 
 t = time.time()
@@ -66,25 +67,26 @@ if gv.reel:
     crop_file = '/home/julin/Documents/imbilles/crops/1um2/860_495-540_0.049xy_0.5z_2/0.tif'
 
     Y = skio.imread(crop_file)
+    observ_distri(Y, gv.resolution, 'Y distribution')
     gv.kernel_size = np.array(Y.shape)
 
 if gv.simulation:
     C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
     # C = np.array([1, 1, 5])
-    angle = np.array([0, 0, 0])
-    # angle = np.array([np.pi / 4,
-    #                   0, -np.pi / 6])
-    mutrue = np.array([0, 0, 0])
-    Dtrue = kernel.genD(angle, C)
-    Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=0)
 
+    mutrue = np.array([0, 0, 0])
+    Dtrue = kernel.genD(gv.angle, C)
+    print(Dtrue)
+    Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=0.1)
+    observ_distri(ktrue, gv.resolution, 'k_true distribution')
+    # print(Y)
 lamb = 1
-chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y, lamb, gv.reel)
+chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y)
 if gv.simulation:
     observ(ktrue, 0, "ktrue")
 
 
 observ(k_args, 0, "kargs")
 observ(chosen_k, 0, "k_est")
-observ(convolve(k_args, p, "same"), 0, "k convolué avec p")
+observ(fftconvolve(k_args, p, "same"), 0, "k convolué avec p")
 observ_distri(k_args, gv.resolution, 'k_args distribution')

@@ -1,6 +1,6 @@
 from skimage import io as skio
 from skimage import measure
-from scipy.signal import convolve
+from scipy.signal import fftconvolve
 import numpy as np
 import os
 import shutil
@@ -15,7 +15,7 @@ for imname in dirs:
     print(im.shape)
     filter_size = 3
     filter = np.ones((3, 3, 3))
-    imfiltered = convolve(im, filter, "same")
+    imfiltered = fftconvolve(im, filter, "same")
     print(np.min(imfiltered))
     seuil = 2000
     imfiltered[imfiltered < seuil] = 0

@@ -1,6 +1,7 @@
 import numpy as np
 import global_variables as gv
 import prox.utils as utils
+from scipy.signal import convolve
 def make_sphere():
     rayon = gv.sphere_size/2
     print("rayon =", rayon)
@@ -11,20 +12,21 @@ def make_sphere():
         for i in range(x.shape[0]):
             for j in range(x.shape[1]):
                 for k in range(x.shape[2]):
-                    if np.sqrt((np.abs(x[i, j, k])-gv.resolution[0]) ** 2
-                               + (np.abs(y[i, j, k])-gv.resolution[1]) ** 2
-                               + (np.abs(z[i, j, k])-gv.resolution[2]) ** 2) <= rayon \
-                        or np.sqrt((x[i, j, k]) ** 2
-                                   + (y[i, j, k]) ** 2
-                                   + (z[i, j, k]) ** 2)< rayon:
-                        if np.sqrt(x[i, j, k] ** 2 + y[i, j, k] ** 2 + z[i, j, k] ** 2) <= rayon:
-                            sphere[i, j, k] = 1
-                        else:
-                            sphere[i, j, k] = 1*(1-np.sqrt((np.abs(x[i, j, k])-gv.resolution[0]) ** 2
-                               + (np.abs(y[i, j, k])-gv.resolution[1]) ** 2
-                               + (np.abs(z[i, j, k])-gv.resolution[2]) ** 2)/rayon)
+                    b = np.sqrt((np.abs(x[i, j, k] * gv.resolution[0]) - gv.resolution[0]) ** 2
+                                + (np.abs(y[i, j, k] * gv.resolution[1]) - gv.resolution[1]) ** 2
+                                + (np.abs(z[i, j, k] * gv.resolution[2]) - gv.resolution[2]) ** 2)
+                    if np.sqrt((x[i, j, k] * gv.resolution[0]) ** 2
+                               + (y[i, j, k] * gv.resolution[1]) ** 2
+                               + (z[i, j, k] * gv.resolution[2]) ** 2) <= rayon:
+                        sphere[i, j, k] = 1
+                    elif b <= rayon:
+                        a = np.sqrt((np.abs(x[i, j, k] * gv.resolution[0])) ** 2
+                                    + (np.abs(y[i, j, k] * gv.resolution[1])) ** 2
+                                    + (np.abs(z[i, j, k] * gv.resolution[2])) ** 2)
+                        sphere[i, j, k] = (rayon-b)/(a-b)
         return sphere
-    sphere = np.where(np.sqrt(x ** 2 + y** 2 + z ** 2) <= rayon, 1, 0)
+    print(np.max((x/gv.resolution[0])))
+    sphere = np.where(np.sqrt((x*gv.resolution[0]) ** 2 + (y*gv.resolution[1]) ** 2 + (z*gv.resolution[2]) ** 2) <= rayon, 1, 0)
     return sphere
 # values = make_sphere(8, 10)
 # observation3D.observ(values)

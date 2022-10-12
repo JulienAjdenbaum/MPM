@@ -1,30 +1,57 @@
 import numpy as np
 
+reel = False
+
 # acquisition parameters
-resolution = np.array((0.5, 0.049, 0.049))
-# resolution = np.array((1, 1, 1))/2
+
+# resolution = np.array((0.05, 0.049, 0.049))
+# FWMH = (75, 0.5, 0.5)
+# angle = np.array([0, 0, 0])
+# kernel_size = np.array((234, 44, 49))
+# a_sim = 0
+# b_sim = 1
+#
+# _lambda = 1
+# gam_k = 1e-7
+# alpha = gam_k
+# gamma = 1
+# gam_mu = gamma
+# gam_D = gamma
+# gam_a = gamma
+# gam_b = gamma
+# plot = True
+
+
+
+resolution = np.array((1, 1, 1))/10
+FWMH = np.array((5, 1, 1))
+angle = np.array([np.pi / 4, 0, -np.pi / 6])
+kernel_size = np.array((31, 31, 31))
+a_sim = 1
+b_sim = 2
+
+_lambda = 1
+gam_k = 1e-6
+alpha = gam_k
+gamma = 1e-2
+gam_mu = gamma
+gam_D = gamma
+gam_a = gamma
+gam_b = gamma
+plot = True
+
 sphere_size = 1  # micrometers
 
 # algorithm parameters
-_lambda = 1
-gam_k = 0.0001
-alpha = gam_k
-gam_mu = 1
-gam_D = 1
-gam_a = 1
-gam_b = 1
-plot = True
+n_iter = 10000
+
 
 # data simulation parameters
-FWMH = (1500, 0.5, 0.5)
-# FWMH = (10, 1, 1)
-a_sim = 0
-b_sim = 1
-kernel_size = np.array((234, 44, 49))
+
+
 interpolated = True
 
 cnt = 0
 debug = False
 
-reel = False
 simulation = not reel

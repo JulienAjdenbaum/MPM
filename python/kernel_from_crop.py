@@ -1,4 +1,4 @@
-
+import matplotlib.pyplot as plt
 from skimage import io as skio
 from skimage import measure
 from scipy.signal import fftconvolve
@@ -10,6 +10,8 @@ from prox.utils import get_barycentre, get_a
 import time
 import global_variables as gv
 import scipy
+import os
+import datetime
 
 #%%
 # def pad(im):
@@ -44,23 +46,12 @@ def pad(im):
 
 
 def pipeline(im):
-    # im = im/np.max(im)
-    # a = get_a(im)
-    # print('a = ', a)
-    # if reel:
-    #     im = im/a
-    #     print(np.max(im))
-    # im = pad(im)
-    if gv.plot:
-        observ(im, 0, "image")
+
+    observ(im, 0, "image")
     p = make_sphere()
-    if gv.plot:
-        observ(p, 0, 'p')
+    observ(p, 0, 'p')
         # observ(im, 0, "im")
     return from_bille(p, im)
-
-
-t = time.time()
 
 if gv.reel:
     crop_file = '/home/julin/Documents/imbilles/crops/4um/1_max_810_575-630_4um_Pmax_500V_3X_10_0.497umx_0.5z/2.tif'
@@ -77,16 +68,67 @@ if gv.simulation:
     mutrue = np.array([0, 0, 0])
     Dtrue = kernel.genD(gv.angle, C)
     print(Dtrue)
-    Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=0.1)
+    Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=0.3)
     observ_distri(ktrue, gv.resolution, 'k_true distribution')
     # print(Y)
-lamb = 1
+
+t = time.time()
 chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y)
+temps_exec = time.time() - t
+
 if gv.simulation:
     observ(ktrue, 0, "ktrue")
-
 
 observ(k_args, 0, "kargs")
 observ(chosen_k, 0, "k_est")
 observ(fftconvolve(k_args, p, "same"), 0, "k convolué avec p")
 observ_distri(k_args, gv.resolution, 'k_args distribution')
+
+# Save
+if os.listdir(gv.save_path) == []:
+    n = 0
+else:
+    print(np.max(list(map(int, os.listdir(gv.save_path)))))
+    n = np.max(list(map(int, os.listdir(gv.save_path)))) + 1
+
+gv.save_path = gv.save_path + str(n) + "/"
+os.mkdir(gv.save_path)
+os.mkdir(gv.save_path+"plots")
+os.mkdir(gv.save_path+"values")
+settings_file = open(gv.save_path+"settings.txt", "w")
+
+if gv.reel:
+    Dtrue = None
+
+txt =   f"date = {datetime.datetime.now()}" \
+        f"\n\nresolution = {gv.resolution} " \
+        f"\nFWMH = {gv.FWMH} " \
+        f"\nangle = {gv.angle}" \
+        f"\nkernel_size = {gv.kernel_size})" \
+        f"\na_sim = {gv.a_sim}" \
+        f"\nb_sim = {gv.b_sim}" \
+        f"\n_lambda = {gv._lambda}" \
+        f"\ngam_k = {gv.gam_k}" \
+        f"\nalpha = {gv.alpha}" \
+        f"\ngamma = {gv.gamma}" \
+        f"\ngam_mu = {gv.gam_mu}" \
+        f"\ngam_D = {gv.gam_D}" \
+        f"\ngam_a = {gv.gam_a}" \
+        f"\ngam_b = {gv.gam_b}" \
+        f"\nD = {Dtrue}" \
+        f"\n\n temps execution : = {temps_exec}"
+
+settings_file.write(txt)
+settings_file.close()
+
+for i in range(len(gv.plots)):
+    fig = gv.plots[i]
+    fig.savefig(gv.save_path + "plots/" + gv.plot_names[i] + ".png")
+
+np.save(gv.save_path + "values/" + "ktrue" + ".npy", ktrue)
+np.save(gv.save_path + "values/" + "kargs" + ".npy", k_args)
+np.save(gv.save_path + "values/" + "kest" + ".npy", chosen_k)
+np.save(gv.save_path + "values/" + "Dtrue" + ".npy", Dtrue)
+np.save(gv.save_path + "values/" + "D" + ".npy", chosen_D)
+np.save(gv.save_path + "values/" + "p" + ".npy", p)
+np.save(gv.save_path + "values/" + "im" + ".npy", Y)

@@ -26,10 +26,9 @@ def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
     my_sphere = make_sphere.make_sphere()
     generated_k = kernel.gaussian_kernel(kernel_D, kernel_mu)
     im = gv.a_sim + gv.b_sim*fftconvolve(my_sphere, generated_k, 'same')
-    if gv.plot:
-        observation3D.observ(my_sphere, 0, "Grosse bille")
-        observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
-        observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
+    observation3D.observ(my_sphere, 0, "Grosse bille")
+    observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
+    observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
 
     im += np.random.randn(im.shape[0], im.shape[1], im.shape[2]) * sigma_noise
     # if plot_observation:
@@ -129,7 +128,8 @@ def from_bille(p, Y):
     gv.gam_k = gv.alpha
     print("valeur de alpha : ", gv.alpha)
     D = np.eye(3)
-    k = kernel.gaussian_kernel(np.diag([1, 1, 1]), [0, 0, 0])
+    # k = kernel.gaussian_kernel(np.diag([1, 1, 1]), [0, 0, 0])
+    k = np.zeros(gv.kernel_size)
     mu = [0, 0, 0]
     a = 0
     b = 1
@@ -150,7 +150,7 @@ def from_bille(p, Y):
         newmu = proxfmu.prox(X, newk, D, mu, gv._lambda, epsD)
         newD = proxfd.prox(D, newk, X, newmu, epsD, gv._lambda)
 
-        if i % 20 == 0:
+        if i % gv.print_n_iter == 0:
             # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
             # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
             print("\niteration : ", i, "lambda  ", gv._lambda,
@@ -168,17 +168,24 @@ def from_bille(p, Y):
         i_list.append(i)
         # norm_list.append(np.linalg.norm(D-Dtrue))
         norms_new_list.append(np.linalg.norm(D - newD))
-        if np.linalg.norm(k - newk) + np.linalg.norm(mu - newmu) + np.linalg.norm(D - newD) < 1e-6:
+        if np.linalg.norm(k - newk) \
+                + np.linalg.norm(mu - newmu)\
+                + np.linalg.norm(D - newD) \
+                + np.linalg.norm(a - newa)\
+                + np.linalg.norm(b - newb) < gv.stop_criteria:
             print("last iteration :", i)
             break
         a, b, k, mu, D = newa, newb, newk, newmu, newD
-
+    fig1 = plt.figure()
     plt.plot(i_list, norms_new_list)
     plt.xlabel("Itérations")
     plt.ylabel("norm (D-newD)")
     plt.yscale('log')
     plt.title("Evolution de la convergence sur D")
-    plt.show()
+    gv.plots.append(fig1)
+    gv.plot_names.append("Evolution de la convergence sur D")
+    if gv.plot:
+        plt.show()
     print("exec time : ", time.time() - t)
     print("D est", np.round(D, 3))
     print("mu est", np.round(mu, 2))

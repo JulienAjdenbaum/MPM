@@ -9,16 +9,6 @@ def prox(y, k, p, convo, a, b, D, x, mu, eps):
     lam = gv._lambda
     alph = gv.alpha
     gam = gv.gam_k
-    # print("p@p.T", np.max(p))
-    # b = 1
-    # a = 0
-    # print(y.shape)
-    # print(fftconvolve(k, p, 'same').shape)
-    # print(k.shape)
-    # print(p.shape)
-    # print()
-    # print(a)
-    # print(b)
 
     grad = fftconvolve(b**2*convo + b*a - b*y, p[::-1, ::-1, ::-1], "same")
 
@@ -37,7 +27,7 @@ def prox(y, k, p, convo, a, b, D, x, mu, eps):
 
 def w(nu, k, c, lamb, gam):
     # myprint("w :", np.max(c), np.max(k), nu)
-    return -1 - c + (k -nu) / (lamb * gam)
+    return -1 - c + (k - nu) / (lamb * gam)
 
 
 def proxg(k, c, gam, lam):

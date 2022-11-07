@@ -38,34 +38,45 @@ rc('text', usetex=True)
 #     print("ploted")
 
 def observcoupe(values, center, title):
+    print("gv.plot ", gv.plot)
+    fig1 = plt.figure()
     plt.imshow(values[:, values.shape[1] // 2 + center, :],
                extent=[0, values.shape[2]*gv.resolution[2], 0, values.shape[0]*gv.resolution[0]])
     plt.title(title + " - vue latérale ")
     plt.xlabel("axe y ($\mu m$)")
     plt.ylabel("axe z ($\mu m$)")
-    plt.show()
+    gv.plots.append(fig1)
+    gv.plot_names.append(title + " - vue latérale ")
+    if gv.plot:
+        plt.show()
+    fig2 = plt.figure()
     plt.imshow(values[values.shape[0] // 2 + center, :, :],
                extent=[0, values.shape[1]*gv.resolution[1], 0, values.shape[2]*gv.resolution[2]])
     plt.title(title + " - vue du dessus")
     plt.xlabel("axe x ($\mu m$)")
     plt.ylabel("axe y ($\mu m$)")
-    plt.show()
+    gv.plots.append(fig2)
+    gv.plot_names.append(title + " - vue du dessus")
+    if gv.plot:
+        plt.show()
 
 
 def observ(values, center, title):
     observcoupe(values, center, title)
-    xi, yi, zi, Xi = utils.mymgrid()
-    density = values[xi, yi, zi]
-    grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
-    mini = density.min()
-    maxi = density.max()
-    mlab.pipeline.volume(grid, vmin=mini, vmax=mini + .5 * (maxi - mini))
-    mlab.axes()
-    mlab.title(title)
-    mlab.show()
+    if gv.plot:
+        xi, yi, zi, Xi = utils.mymgrid()
+        density = values[xi, yi, zi]
+        grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
+        mini = density.min()
+        maxi = density.max()
+        mlab.pipeline.volume(grid, vmin=mini, vmax=mini + .5 * (maxi - mini))
+        mlab.axes()
+        mlab.title(title)
+        mlab.show()
 
 
 def observ_distri(values, resolutions, titre):
+    fig1 = plt.figure()
     centre = np.array(get_barycentre(values)).astype(int)
     idx = (np.arange(len(values[0, :, 0])) - centre[1]) * resolutions[1]
     idy = (np.arange(len(values[0, 0, :])) - centre[2]) * resolutions[2]
@@ -82,7 +93,11 @@ def observ_distri(values, resolutions, titre):
     plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
     plt.title(titre + " - distribution selon y")
     plt.xlabel("axe y ($\mu m$)")
-    plt.show()
+    gv.plots.append(fig1)
+    gv.plot_names.append(titre + " - distribution selon y")
+    if gv.plot:
+        plt.show()
+    fig1 = plt.figure()
     plt.plot(idx, values[centre[0], :, centre[2]])
     mi_hauteur = 0.5 * np.max(values[centre[0], :, centre[2]])
     mi_hauteur_min = np.min(np.argwhere(values[centre[0], :, centre[2]] >= mi_hauteur)) - 0.5
@@ -95,7 +110,11 @@ def observ_distri(values, resolutions, titre):
     m = (mi_hauteur_max + mi_hauteur_min) / 2
     plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
     plt.xlabel("axe x ($\mu m$)")
-    plt.show()
+    gv.plots.append(fig1)
+    gv.plot_names.append(titre + " - distribution selon x")
+    if gv.plot:
+        plt.show()
+    fig1 = plt.figure()
     plt.plot(idz, values[:, centre[1], centre[2]])
     mi_hauteur = 0.5 * np.max(values[:, centre[1], centre[2]])
     mi_hauteur_min = np.min(np.argwhere(values[:, centre[1], centre[2]] >= mi_hauteur)) - 0.5
@@ -108,4 +127,7 @@ def observ_distri(values, resolutions, titre):
     m = (mi_hauteur_max + mi_hauteur_min) / 2
     plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
     plt.xlabel("axe z ($\mu m$)")
-    plt.show()
+    gv.plots.append(fig1)
+    gv.plot_names.append(titre + " - distribution selon z")
+    if gv.plot:
+        plt.show()

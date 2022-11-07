@@ -1,6 +1,7 @@
 import numpy as np
 
 reel = False
+save_path = "/home/julin/Documents/MPM_results/"
 
 # acquisition parameters
 
@@ -11,7 +12,7 @@ reel = False
 # a_sim = 0
 # b_sim = 1
 #
-# _lambda = 1
+# _lambda = 100
 # gam_k = 1e-7
 # alpha = gam_k
 # gamma = 1
@@ -19,39 +20,44 @@ reel = False
 # gam_D = gamma
 # gam_a = gamma
 # gam_b = gamma
-# plot = True
+# plot = False
 
 
 
-resolution = np.array((1, 1, 1))/10
+resolution = np.array((1, 1, 1))/5
 FWMH = np.array((5, 1, 1))
-angle = np.array([np.pi / 4, 0, -np.pi / 6])
-kernel_size = np.array((31, 31, 31))
+angle = np.array([0, 0, 0])
+kernel_size = np.array((15, 15, 15))
 a_sim = 1
 b_sim = 2
 
-_lambda = 1
+_lambda = 20
 gam_k = 1e-6
 alpha = gam_k
-gamma = 1e-2
+gamma = 1
 gam_mu = gamma
 gam_D = gamma
 gam_a = gamma
 gam_b = gamma
-plot = True
+plot = False
 
 sphere_size = 1  # micrometers
 
 # algorithm parameters
 n_iter = 10000
-
-
+stop_criteria = 1e-5
+print_n_iter = 1
 # data simulation parameters
 
 
-interpolated = True
+interpolated = False
 
 cnt = 0
 debug = False
 
 simulation = not reel
+
+save_path = "/home/julin/Documents/MPM_results/"
+
+plots = []
+plot_names = []

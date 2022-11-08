@@ -89,6 +89,7 @@ def observ_distri(values, resolutions, titre):
     mi_hauteur_max = (mi_hauteur_max - centre[2]) * resolutions[2]
     plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
     FWMH = (mi_hauteur_max - mi_hauteur_min)
+    gv.FWMH[0] = FWMH
     m = (mi_hauteur_max + mi_hauteur_min) / 2
     plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
     plt.title(titre + " - distribution selon y")
@@ -107,6 +108,7 @@ def observ_distri(values, resolutions, titre):
     plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
     plt.title(titre + " - distribution selon x")
     FWMH = (mi_hauteur_max - mi_hauteur_min)
+    gv.FWMH[1] = FWMH
     m = (mi_hauteur_max + mi_hauteur_min) / 2
     plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
     plt.xlabel("axe x ($\mu m$)")
@@ -124,6 +126,7 @@ def observ_distri(values, resolutions, titre):
     plt.plot([mi_hauteur_min, mi_hauteur_max], [mi_hauteur, mi_hauteur], marker="o")
     plt.title(titre + " - distribution selon z")
     FWMH = (mi_hauteur_max - mi_hauteur_min)
+    gv.FWMH[2] = FWMH
     m = (mi_hauteur_max + mi_hauteur_min) / 2
     plt.text(m, mi_hauteur * 1.05, "FWMH = " + str(FWMH) + "$\mu m$", ha="center", fontsize="small")
     plt.xlabel("axe z ($\mu m$)")

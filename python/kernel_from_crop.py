@@ -45,90 +45,155 @@ def pad(im):
     return im_new
 
 
-def pipeline(im):
+def pipeline(crop_file):
+    if gv.reel:
+        # crop_file = '/home/julin/Documents/imbilles/crops/1/860_495-540_0.049xy_0.5z_2/0.tif'
 
-    observ(im, 0, "image")
+        Y = skio.imread(crop_file)
+        Y = Y/np.max(Y)
+        observ_distri(Y, gv.resolution, 'Y distribution')
+        gv.kernel_size = np.array(Y.shape)
+
+    if gv.simulation:
+        C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
+        # C = np.array([1, 1, 5])
+
+        mutrue = np.array([0, 0, 0])
+        Dtrue = kernel.genD(gv.angle, C)
+        print(Dtrue)
+        Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=gv.sigma_noise)
+        observ_distri(ktrue, gv.resolution, 'k_true distribution')
+        # print(Y)
+
+    t = time.time()
     p = make_sphere()
+
     observ(p, 0, 'p')
-        # observ(im, 0, "im")
-    return from_bille(p, im)
+    observ(Y, 0, 'Y')
+    chosen_D, chosen_mu, chosen_a, chosen_b, k_args, chosen_k, p = from_bille(p, Y)
+    temps_exec = time.time() - t
 
-if gv.reel:
-    crop_file = '/home/julin/Documents/imbilles/crops/4um/1_max_810_575-630_4um_Pmax_500V_3X_10_0.497umx_0.5z/2.tif'
-    crop_file = '/home/julin/Documents/imbilles/crops/1um2/860_495-540_0.049xy_0.5z_2/0.tif'
+    if gv.simulation:
+        observ(ktrue, 0, "ktrue")
 
-    Y = skio.imread(crop_file)
-    observ_distri(Y, gv.resolution, 'Y distribution')
-    gv.kernel_size = np.array(Y.shape)
+    observ(k_args, 0, "kargs")
+    observ(chosen_k, 0, "k_est")
+    observ(fftconvolve(k_args, p, "same"), 0, "k convolué avec p")
+    observ_distri(k_args, gv.resolution, 'k_args distribution')
 
-if gv.simulation:
-    C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
-    # C = np.array([1, 1, 5])
+    # Save
+    if os.listdir(gv.save_path) == []:
+        n = 0
+    else:
+        print(np.max(list(map(int, os.listdir(gv.save_path)))))
+        n = np.max(list(map(int, os.listdir(gv.save_path)))) + 1
 
-    mutrue = np.array([0, 0, 0])
-    Dtrue = kernel.genD(gv.angle, C)
-    print(Dtrue)
-    Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=0.3)
-    observ_distri(ktrue, gv.resolution, 'k_true distribution')
-    # print(Y)
+    gv.save_path = gv.save_path + str(n) + "/"
+    os.mkdir(gv.save_path)
+    os.mkdir(gv.save_path+"plots")
+    os.mkdir(gv.save_path+"values")
+    settings_file = open(gv.save_path+"settings.txt", "w")
 
-t = time.time()
-chosen_D, chosen_mu, k_args, chosen_k, p = pipeline(Y)
-temps_exec = time.time() - t
+    if gv.reel:
+        # f"\nsigma_bruit = {gv.sigma_noise}" \
+        # f"\nangle = {gv.angle}" \
+        # f"\na_sim = {gv.a_sim}" \
+        # f"\nb_sim = {gv.b_sim}" \
 
-if gv.simulation:
-    observ(ktrue, 0, "ktrue")
+        sigma = np.linalg.inv(chosen_D)
+        FWMH = np.sqrt(np.linalg.eig(sigma)[0])*gv.resolution*(2*np.sqrt(2*np.log(2)))
+        txt = f"date = {datetime.datetime.now()}" \
+              f"\nfile = {crop_file}" \
+              f"\n\nresolution = {gv.resolution} " \
+              f"\nfalse FWMH = {gv.FWMH} " \
+              f"\ntrue FWMH = {FWMH} " \
+              f"\nkernel_size = {gv.kernel_size})" \
+              f"\n_lambda = {gv._lambda}" \
+              f"\ngam_k = {gv.gam_k}" \
+              f"\nalpha = {gv.alpha}" \
+              f"\ngamma = {gv.gamma}" \
+              f"\ngam_mu = {gv.gam_mu}" \
+              f"\ngam_D = {gv.gam_D}" \
+              f"\ngam_a = {gv.gam_a}" \
+              f"\ngam_b = {gv.gam_b}" \
+              f"\nD_est = {chosen_D}" \
+              f"\nm_uest = {chosen_mu}"\
+              f"\na_est = {chosen_a}" \
+              f"\nb_est = {chosen_b}" \
+              f"\n\n temps execution : = {temps_exec}"
 
-observ(k_args, 0, "kargs")
-observ(chosen_k, 0, "k_est")
-observ(fftconvolve(k_args, p, "same"), 0, "k convolué avec p")
-observ_distri(k_args, gv.resolution, 'k_args distribution')
+    if gv.simulation:
+        txt =   f"date = {datetime.datetime.now()}" \
+                f"\n\nresolution = {gv.resolution} " \
+                f"\nFWMH = {gv.FWMH} " \
+                f"\nangle = {gv.angle}" \
+                f"\nkernel_size = {gv.kernel_size})" \
+                f"\na_sim = {gv.a_sim}" \
+                f"\nb_sim = {gv.b_sim}" \
+                f"\n_lambda = {gv._lambda}" \
+                f"\ngam_k = {gv.gam_k}" \
+                f"\nalpha = {gv.alpha}" \
+                f"\ngamma = {gv.gamma}" \
+                f"\ngam_mu = {gv.gam_mu}" \
+                f"\ngam_D = {gv.gam_D}" \
+                f"\ngam_a = {gv.gam_a}" \
+                f"\ngam_b = {gv.gam_b}" \
+                f"\nDtrue = {Dtrue}" \
+                f"\nsigma_bruit = {gv.sigma_noise}" \
+                f"\n\n temps execution : = {temps_exec}"
 
-# Save
-if os.listdir(gv.save_path) == []:
-    n = 0
-else:
-    print(np.max(list(map(int, os.listdir(gv.save_path)))))
-    n = np.max(list(map(int, os.listdir(gv.save_path)))) + 1
+    settings_file.write(txt)
+    settings_file.close()
 
-gv.save_path = gv.save_path + str(n) + "/"
-os.mkdir(gv.save_path)
-os.mkdir(gv.save_path+"plots")
-os.mkdir(gv.save_path+"values")
-settings_file = open(gv.save_path+"settings.txt", "w")
+    for i in range(len(gv.plots)):
+        fig = gv.plots[i]
+        fig.savefig(gv.save_path + "plots/" + gv.plot_names[i] + ".png")
 
-if gv.reel:
-    Dtrue = None
 
-txt =   f"date = {datetime.datetime.now()}" \
-        f"\n\nresolution = {gv.resolution} " \
-        f"\nFWMH = {gv.FWMH} " \
-        f"\nangle = {gv.angle}" \
-        f"\nkernel_size = {gv.kernel_size})" \
-        f"\na_sim = {gv.a_sim}" \
-        f"\nb_sim = {gv.b_sim}" \
-        f"\n_lambda = {gv._lambda}" \
-        f"\ngam_k = {gv.gam_k}" \
-        f"\nalpha = {gv.alpha}" \
-        f"\ngamma = {gv.gamma}" \
-        f"\ngam_mu = {gv.gam_mu}" \
-        f"\ngam_D = {gv.gam_D}" \
-        f"\ngam_a = {gv.gam_a}" \
-        f"\ngam_b = {gv.gam_b}" \
-        f"\nD = {Dtrue}" \
-        f"\n\n temps execution : = {temps_exec}"
+    np.save(gv.save_path + "values/" + "kargs" + ".npy", k_args)
+    np.save(gv.save_path + "values/" + "kest" + ".npy", chosen_k)
 
-settings_file.write(txt)
-settings_file.close()
+    np.save(gv.save_path + "values/" + "D" + ".npy", chosen_D)
+    np.save(gv.save_path + "values/" + "p" + ".npy", p)
+    np.save(gv.save_path + "values/" + "im" + ".npy", Y)
+    np.save(gv.save_path + "values/" + "mu" + ".npy", chosen_mu)
 
-for i in range(len(gv.plots)):
-    fig = gv.plots[i]
-    fig.savefig(gv.save_path + "plots/" + gv.plot_names[i] + ".png")
+    skio.imsave(gv.save_path + "values/" + "bille_simulee.tif", 1000 * p)
+    skio.imsave(gv.save_path + "values/" + "PSFconvolueeIvrai.tif", fftconvolve(k_args, p, "same"))
+    skio.imsave(gv.save_path + "values/" + "crop_bille.tif", Y)
+    skio.imsave(gv.save_path + "values/" + "PSF_args.tif", k_args)
 
-np.save(gv.save_path + "values/" + "ktrue" + ".npy", ktrue)
-np.save(gv.save_path + "values/" + "kargs" + ".npy", k_args)
-np.save(gv.save_path + "values/" + "kest" + ".npy", chosen_k)
-np.save(gv.save_path + "values/" + "Dtrue" + ".npy", Dtrue)
-np.save(gv.save_path + "values/" + "D" + ".npy", chosen_D)
-np.save(gv.save_path + "values/" + "p" + ".npy", p)
-np.save(gv.save_path + "values/" + "im" + ".npy", Y)
+    if gv.simulation:
+        np.save(gv.save_path + "values/" + "ktrue" + ".npy", ktrue)
+        np.save(gv.save_path + "values/" + "Dtrue" + ".npy", Dtrue)
+
+    file = open("/home/julin/Documents/MPM_results/Malik_Erwan/tableau.txt", 'a')
+    file.write(gv.im_name + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
+    file.close()
+
+path_ims = '/home/julin/Documents/imbilles/crops/MalikErwan/'
+
+n_images = 0
+for ims in os.listdir(path_ims):
+    for crop in os.listdir(path_ims+ims+"/"):
+        n_images+=1
+
+i_image = 0
+
+os.mkdir("/home/julin/Documents/MPM_results/Malik_Erwan/")
+for ims in os.listdir(path_ims):
+    os.mkdir("/home/julin/Documents/MPM_results/Malik_Erwan/"+ims+"/")
+    for crop in os.listdir(path_ims+ims+"/"):
+        os.mkdir("/home/julin/Documents/MPM_results/Malik_Erwan/"+ims+"/crop"+crop[:-4])
+        i_image += 1
+        path_crop = path_ims + ims+"/" + crop
+        gv.im_name = ims+"/"+crop
+        print(path_crop)
+        print(gv.im_name)
+        print(f'Image {i_image}/{n_images}')
+        # pipeline(path_crop)
+        gv.save_path = "/home/julin/Documents/MPM_results/Malik_Erwan/"+ims+"/crop"+crop[:-4] + "/"
+        os.listdir(gv.save_path)
+        pipeline(path_crop)
+
+

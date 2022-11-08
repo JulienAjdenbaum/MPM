@@ -29,8 +29,9 @@ def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
     observation3D.observ(my_sphere, 0, "Grosse bille")
     observation3D.observ(generated_k, kernel_mu[0], "Noyau généré")
     observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
-
+    print("min im", np.min(im))
     im += np.random.randn(im.shape[0], im.shape[1], im.shape[2]) * sigma_noise
+    print("min im", np.min(im))
     # if plot_observation:
     #     observation3D.observ(im, kernel_mu[0], "Bille convoluée bruitée")
     #     observation3D.observ(my_sphere)
@@ -142,6 +143,7 @@ def from_bille(p, Y):
     #     observation3D.observ_distri(Y, (1.5, 0.5, 0.5), "Bille observée")
     i_list = []
     norms_new_list = []
+    stop = 1000000
     for i in range(gv.n_iter):
         convo = fftconvolve(k, p, "same")
         newa = proxfa.prox(a, b, Y, convo)
@@ -149,11 +151,20 @@ def from_bille(p, Y):
         newk = proxfk.prox(Y, k, p, convo, newa, newb, D, X, mu, epsD)
         newmu = proxfmu.prox(X, newk, D, mu, gv._lambda, epsD)
         newD = proxfd.prox(D, newk, X, newmu, epsD, gv._lambda)
+        stop_new = np.linalg.norm(k - newk) \
+                + np.linalg.norm(mu - newmu)\
+                + np.linalg.norm(D - newD) \
+                + np.linalg.norm(a - newa)\
+                + np.linalg.norm(b - newb)
+        stop2 = np.abs(stop-stop_new)/stop_new
+        stop = stop_new
 
         if i % gv.print_n_iter == 0:
             # print("iteration : ", i, "     ", np.linalg.norm(k-newk), "     ",
             # np.linalg.norm(mu-newmu), "     ", np.linalg.norm(D-newD))
-            print("\niteration : ", i, "lambda  ", gv._lambda,
+            print("\niteration : ", i, 'image :', gv.im_name, 'stop : ', stop,
+                  "\nstop2  ", stop2,
+                  "\nlambda  ", gv._lambda,
                   "\n k-newk", np.linalg.norm(k - newk),
                   "\n mu-newmu", np.linalg.norm(mu - newmu),
                   "\n D-newD", np.linalg.norm(D - newD),
@@ -168,12 +179,25 @@ def from_bille(p, Y):
         i_list.append(i)
         # norm_list.append(np.linalg.norm(D-Dtrue))
         norms_new_list.append(np.linalg.norm(D - newD))
-        if np.linalg.norm(k - newk) \
-                + np.linalg.norm(mu - newmu)\
-                + np.linalg.norm(D - newD) \
-                + np.linalg.norm(a - newa)\
-                + np.linalg.norm(b - newb) < gv.stop_criteria:
+        if stop < gv.stop_criteria or (stop2 < gv.stop_criteria2 and gv.n_iter>100):
+            if stop < gv.stop_criteria :
+                gv.reussi = True
             print("last iteration :", i)
+
+            print("\niteration : ", i, 'image :', gv.im_name, 'stop : ', stop, "stop2  ", stop2,
+                  "\nlambda  ", gv._lambda,
+                  "\n k-newk", np.linalg.norm(k - newk),
+                  "\n mu-newmu", np.linalg.norm(mu - newmu),
+                  "\n D-newD", np.linalg.norm(D - newD),
+                  "\n a-newa", np.linalg.norm(a - newa),
+                  "\n b-newb", np.linalg.norm(b - newb),
+                  "\n max k, min k", np.max(newk), np.min(newk),
+                  "\n a est", newa,
+                  "\n b est", newb,
+                  "\n mu est", newmu)
+            # print(np.round(newD, 3))
+            print(newD)
+
             break
         a, b, k, mu, D = newa, newb, newk, newmu, newD
     fig1 = plt.figure()
@@ -192,4 +216,4 @@ def from_bille(p, Y):
 
     kargs = kernel.gaussian_kernel(D, mu)
 
-    return D, mu, kargs, k, p
+    return D, mu, a, b, kargs, k, p

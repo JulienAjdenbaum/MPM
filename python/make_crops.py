@@ -5,14 +5,15 @@ import numpy as np
 import os
 import shutil
 
-path_ims = '/home/julin/Documents/imbilles/1um2/'
-path_crops = '/home/julin/Documents/imbilles/crops/1um2/'
+path_ims = '/home/julin/Documents/imbilles/MalikErwan/'
+path_crops = '/home/julin/Documents/imbilles/crops/MalikErwan/'
 dirs = os.listdir(path_ims)
 
 for imname in dirs:
     print("opening image : ", imname)
     im = skio.imread(path_ims + imname)
     print(im.shape)
+    im = im[:, :, :]
     filter_size = 3
     filter = np.ones((3, 3, 3))
     imfiltered = fftconvolve(im, filter, "same")

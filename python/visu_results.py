@@ -8,7 +8,7 @@ from observation3D import observ
 from kernel import gaussian_kernel
 from scipy.signal import fftconvolve
 
-experiment = 'last'
+experiment = 33
 
 if experiment == 'last':
     if os.listdir(gv.save_path) == []:
@@ -39,7 +39,7 @@ except:
     mu = np.array([0, 0, 0])
 k_args = gaussian_kernel(D, mu)
 observ(k_args, 0, 'k_args')
-
+observ(im, 0, 'k_args')
 p = np.array(np.load(val_path + 'p.npy'))
 observ(p, 0, 'Bille vraie')
 

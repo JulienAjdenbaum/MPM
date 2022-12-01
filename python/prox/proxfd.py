@@ -1,13 +1,13 @@
 import numpy as np
 import global_variables as gv
 
-def prox(D, k, x, mu, eps, lam):
+def prox(D, h, x, mu, eps, lam):
     gam = gv.gam_D
     xmu = x - mu
     xmu = xmu.reshape(xmu.shape[0] * xmu.shape[1] * xmu.shape[2], 3, 1)
-    kflat = k.copy().flatten()
-    m = 1 / 2 * lam * gam * np.sum(kflat)
-    S = 1 / 2 * lam * gam * np.einsum('a, aij, akj -> ik', kflat, xmu, xmu)
+    hflat = h.copy().flatten()
+    m = 1 / 2 * lam * gam * np.sum(hflat)
+    S = 1 / 2 * lam * gam * np.einsum('a, aij, akj -> ik', hflat, xmu, xmu)
     # print("S = ", np.round(S, 2))
     # print("D = ", np.round(D, 2))
     # print("D-S", np.round(D-S, 2))
@@ -26,8 +26,8 @@ def prox(D, k, x, mu, eps, lam):
     # sumk = np.sum(k)
     # xmu = x-mu
     # xmu = xmu.reshape(xmu.shape[0]**3, 3, 1)
-    # kflat = k.copy().flatten()
-    # S = np.einsum('a, aij, akj -> ik', kflat, xmu, xmu)
+    # hflat = k.copy().flatten()
+    # S = np.einsum('a, aij, akj -> ik', hflat, xmu, xmu)
     # M = D - 1/2*gam*lam*S
     # m0 = 1/2*gam*lam*sumk
     # ret = 1/2*(M+np.sqrt(M**2+4*m0*np.eye(3)))

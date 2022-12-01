@@ -45,7 +45,7 @@ def pad(im):
     return im_new
 
 
-def pipeline(crop_file):
+def pipeline(crop_file, global_path):
     if gv.reel:
         # crop_file = '/home/julin/Documents/imbilles/crops/1/860_495-540_0.049xy_0.5z_2/0.tif'
 
@@ -55,31 +55,31 @@ def pipeline(crop_file):
         gv.kernel_size = np.array(Y.shape)
 
     if gv.simulation:
-        C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
-        # C = np.array([1, 1, 5])
+        # C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
 
         mutrue = np.array([0, 0, 0])
-        Dtrue = kernel.genD(gv.angle, C)
+        # Dtrue = kernel.genD(gv.angle, C)
+        Dtrue = gv.D
         print(Dtrue)
-        Y, ktrue, p = gen_observation(mutrue, Dtrue, sigma_noise=gv.sigma_noise)
-        observ_distri(ktrue, gv.resolution, 'k_true distribution')
+        Y, htrue, X = gen_observation(mutrue, Dtrue, sigma_noise=gv.sigma_noise)
+        observ_distri(htrue, gv.resolution, 'h_true distribution')
         # print(Y)
 
     t = time.time()
-    p = make_sphere()
-
-    observ(p, 0, 'p')
+    X = make_sphere()
+    # observ_distri(X, gv.resolution, 'X')
+    observ(X, 0, 'X')
     observ(Y, 0, 'Y')
-    chosen_D, chosen_mu, chosen_a, chosen_b, k_args, chosen_k, p = from_bille(p, Y)
+    chosen_D, chosen_mu, chosen_a, chosen_b, h_args, chosen_h, X = from_bille(X, Y)
     temps_exec = time.time() - t
 
     if gv.simulation:
-        observ(ktrue, 0, "ktrue")
+        observ(htrue, 0, "htrue")
 
-    observ(k_args, 0, "kargs")
-    observ(chosen_k, 0, "k_est")
-    observ(fftconvolve(k_args, p, "same"), 0, "k convolué avec p")
-    observ_distri(k_args, gv.resolution, 'k_args distribution')
+    observ(h_args, 0, "kargs")
+    observ(chosen_h, 0, "k_est")
+    observ(fftconvolve(h_args, X, "same"), 0, "k convolué avec X")
+    observ_distri(h_args, gv.resolution, 'h_args distribution')
 
     # Save
     if os.listdir(gv.save_path) == []:
@@ -109,7 +109,7 @@ def pipeline(crop_file):
               f"\ntrue FWMH = {FWMH} " \
               f"\nkernel_size = {gv.kernel_size})" \
               f"\n_lambda = {gv._lambda}" \
-              f"\ngam_k = {gv.gam_k}" \
+              f"\ngam_h = {gv.gam_h}" \
               f"\nalpha = {gv.alpha}" \
               f"\ngamma = {gv.gamma}" \
               f"\ngam_mu = {gv.gam_mu}" \
@@ -131,7 +131,7 @@ def pipeline(crop_file):
                 f"\na_sim = {gv.a_sim}" \
                 f"\nb_sim = {gv.b_sim}" \
                 f"\n_lambda = {gv._lambda}" \
-                f"\ngam_k = {gv.gam_k}" \
+                f"\ngam_h = {gv.gam_h}" \
                 f"\nalpha = {gv.alpha}" \
                 f"\ngamma = {gv.gamma}" \
                 f"\ngam_mu = {gv.gam_mu}" \
@@ -150,28 +150,28 @@ def pipeline(crop_file):
         fig.savefig(gv.save_path + "plots/" + gv.plot_names[i] + ".png")
 
 
-    np.save(gv.save_path + "values/" + "kargs" + ".npy", k_args)
-    np.save(gv.save_path + "values/" + "kest" + ".npy", chosen_k)
+    np.save(gv.save_path + "values/" + "hargs" + ".npy", h_args)
+    np.save(gv.save_path + "values/" + "hest" + ".npy", chosen_h)
 
     np.save(gv.save_path + "values/" + "D" + ".npy", chosen_D)
-    np.save(gv.save_path + "values/" + "p" + ".npy", p)
+    np.save(gv.save_path + "values/" + "X" + ".npy", X)
     np.save(gv.save_path + "values/" + "im" + ".npy", Y)
     np.save(gv.save_path + "values/" + "mu" + ".npy", chosen_mu)
 
-    skio.imsave(gv.save_path + "values/" + "bille_simulee.tif", 1000 * p)
-    skio.imsave(gv.save_path + "values/" + "PSFconvolueeIvrai.tif", fftconvolve(k_args, p, "same"))
+    skio.imsave(gv.save_path + "values/" + "bille_simulee.tif", 1000 * X)
+    skio.imsave(gv.save_path + "values/" + "PSFconvolueeIvrai.tif", fftconvolve(h_args, X, "same"))
     skio.imsave(gv.save_path + "values/" + "crop_bille.tif", Y)
-    skio.imsave(gv.save_path + "values/" + "PSF_args.tif", k_args)
+    skio.imsave(gv.save_path + "values/" + "PSF_args.tif", h_args)
 
     if gv.simulation:
-        np.save(gv.save_path + "values/" + "ktrue" + ".npy", ktrue)
+        np.save(gv.save_path + "values/" + "htrue" + ".npy", htrue)
         np.save(gv.save_path + "values/" + "Dtrue" + ".npy", Dtrue)
 
-    file = open("/home/julin/Documents/MPM_results/Malik_Erwan/tableau.txt", 'a')
-    file.write(gv.im_name + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
+    file = open(global_path + "tableau.txt", 'a')
+    file.write(gv.im_name.split('/')[0] + ',' + gv.im_name.split('/')[1] + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
     file.close()
 
-path_ims = '/home/julin/Documents/imbilles/crops/MalikErwan/'
+path_ims = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
 
 n_images = 0
 for ims in os.listdir(path_ims):
@@ -179,21 +179,35 @@ for ims in os.listdir(path_ims):
         n_images+=1
 
 i_image = 0
+global_path = "/home/julin/Documents/MPM_results/0.2-1um_3/"
+try:
+    os.mkdir(global_path)
+except:
+    pass
 
-os.mkdir("/home/julin/Documents/MPM_results/Malik_Erwan/")
-for ims in os.listdir(path_ims):
-    os.mkdir("/home/julin/Documents/MPM_results/Malik_Erwan/"+ims+"/")
-    for crop in os.listdir(path_ims+ims+"/"):
-        os.mkdir("/home/julin/Documents/MPM_results/Malik_Erwan/"+ims+"/crop"+crop[:-4])
-        i_image += 1
-        path_crop = path_ims + ims+"/" + crop
-        gv.im_name = ims+"/"+crop
-        print(path_crop)
-        print(gv.im_name)
-        print(f'Image {i_image}/{n_images}')
-        # pipeline(path_crop)
-        gv.save_path = "/home/julin/Documents/MPM_results/Malik_Erwan/"+ims+"/crop"+crop[:-4] + "/"
-        os.listdir(gv.save_path)
-        pipeline(path_crop)
+# file = open(global_path + "tableau.txt", 'a')
+# file.write('set' + ',' + 'crop' + ',' + 'FWHM X' + ',' + 'FWHM Y'+ ',' + 'FWHM Z' + ',' + "convergence" + '\n')
+# file.close()
+# for ims in os.listdir(path_ims):
+#     try:
+#         os.mkdir(global_path+ims+"/")
+#     except:
+#         pass
+#     for crop in os.listdir(path_ims+ims+"/"):
+#         try:
+#             os.mkdir(global_path+ims+"/crop"+crop[:-4])
+#         except:
+#             pass
+#         i_image += 1
+#         path_crop = path_ims + ims+"/" + crop
+#         gv.im_name = ims+"/"+crop
+#         print(path_crop)
+#         print(gv.im_name)
+#         print(f'Image {i_image}/{n_images}')
+#         # pipeline(path_crop)
+#         gv.save_path = global_path+ims+"/crop"+crop[:-4] + "/"
+#         os.listdir(gv.save_path)
+#         pipeline(path_crop, global_path)
 
+pipeline(None, global_path = "/home/julin/Documents/MPM_results/simu")
 

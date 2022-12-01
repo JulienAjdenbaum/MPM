@@ -26,7 +26,7 @@ def make_sphere():
                         sphere[i, j, k] = (rayon-b)/(a-b)
         return sphere
     print(np.max((x/gv.resolution[0])))
-    sphere = np.where(np.sqrt((x*gv.resolution[0]) ** 2 + (y*gv.resolution[1]) ** 2 + (z*gv.resolution[2]) ** 2) <= rayon, 1, 0)
+    sphere = np.where(np.sqrt(((x-1)*gv.resolution[0]) ** 2 + ((y-1)*gv.resolution[1]) ** 2 + ((z-1)*gv.resolution[2]) ** 2) <= rayon, 1, 0)
     return sphere
 # values = make_sphere(8, 10)
 # observation3D.observ(values)

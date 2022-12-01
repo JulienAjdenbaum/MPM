@@ -1,5 +1,5 @@
 import numpy as np
-from .proxfk import myprint
+from .proxfh import myprint
 from scipy.signal import fftconvolve
 import global_variables as gv
 
@@ -42,6 +42,6 @@ def mymgrid():
     shape = gv.kernel_size
     half_size = gv.kernel_size // 2
     x, y, z = np.mgrid[-half_size[0]: half_size[0] + shape[0] % 2,
-              -half_size[1]: half_size[1] + shape[1] % 2,
-              -half_size[2]: half_size[2] + shape[2] % 2]
+              - half_size[1]: half_size[1] + shape[1] % 2,
+              - half_size[2]: half_size[2] + shape[2] % 2]
     return x, y, z, np.stack((x, y, z), axis=3)

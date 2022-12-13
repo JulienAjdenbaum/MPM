@@ -7,10 +7,10 @@ from scipy.special import lambertw
 
 def prox(y, k, X, convo, a, b, D, x, mu, eps):
     lam = gv._lambda
-    alph = gv.alpha
+    alph = gv.gam_h
     gam = gv.gam_h
 
-    grad = fftconvolve(b ** 2 * convo + b * a - b * y, X[::-1, ::-1, ::-1], "same")
+    grad = fftconvolve(b ** 2 * convo + b * a - b * y, X[::-1, ::-1, ::-1], "same") * utils.saturation_der(a + b * convo)
 
     forward = k - alph * grad
     # print("forward = ", np.linalg.norm(forward-k))

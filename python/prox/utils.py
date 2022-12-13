@@ -45,3 +45,13 @@ def mymgrid():
               - half_size[1]: half_size[1] + shape[1] % 2,
               - half_size[2]: half_size[2] + shape[2] % 2]
     return x, y, z, np.stack((x, y, z), axis=3)
+
+def saturation(x):
+    # print(x)
+    # print(np.where(x<4000, x, -np.log(1 + np.exp(4096 - x))))
+    # return (1-np.log(1+np.exp(10-10*x))/10)
+    # return np.where(x<4000, x+1e-6*x, -np.log(1 + np.exp(4096 - x))+1e-6*x)
+    return x
+def saturation_der(x):
+    # return np.exp(10-10*x) / (1 + np.exp(10-10*x))
+    return 1

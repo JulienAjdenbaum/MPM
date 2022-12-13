@@ -62,6 +62,8 @@ def pipeline(crop_file, global_path):
         Dtrue = gv.D
         print(Dtrue)
         Y, htrue, X = gen_observation(mutrue, Dtrue, sigma_noise=gv.sigma_noise)
+        print(np.max(Y), np.min(Y), np.mean(Y))
+        # Y = Y
         observ_distri(htrue, gv.resolution, 'h_true distribution')
         # print(Y)
 
@@ -167,9 +169,9 @@ def pipeline(crop_file, global_path):
         np.save(gv.save_path + "values/" + "htrue" + ".npy", htrue)
         np.save(gv.save_path + "values/" + "Dtrue" + ".npy", Dtrue)
 
-    file = open(global_path + "tableau.txt", 'a')
-    file.write(gv.im_name.split('/')[0] + ',' + gv.im_name.split('/')[1] + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
-    file.close()
+    # file = open(global_path + "tableau.txt", 'a')
+    # file.write(gv.im_name.split('/')[0] + ',' + gv.im_name.split('/')[1] + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
+    # file.close()
 
 path_ims = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
 
@@ -178,12 +180,12 @@ for ims in os.listdir(path_ims):
     for crop in os.listdir(path_ims+ims+"/"):
         n_images+=1
 
-i_image = 0
-global_path = "/home/julin/Documents/MPM_results/0.2-1um_3/"
-try:
-    os.mkdir(global_path)
-except:
-    pass
+# i_image = 0
+# global_path = "/home/julin/Documents/MPM_results/0.2-1um_3/"
+# try:
+#     os.mkdir(global_path)
+# except:
+#     pass
 
 # file = open(global_path + "tableau.txt", 'a')
 # file.write('set' + ',' + 'crop' + ',' + 'FWHM X' + ',' + 'FWHM Y'+ ',' + 'FWHM Z' + ',' + "convergence" + '\n')

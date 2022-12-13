@@ -5,10 +5,10 @@ sphere_size = 1  # micrometers
 
 
 # algorithm parameters
-n_iter = 6000
+n_iter = 1000
 stop_criteria = 1e-6
 stop_criteria2 = 1e-4
-print_n_iter = 20
+print_n_iter = 1
 
 
 cas = 'sim'
@@ -25,8 +25,7 @@ if reel:
     plot = False
     _lambda = 100
     gam_h = 1e-7
-    alpha = gam_h
-    gamma = 1e-2
+    gamma = 1
     gam_mu = gamma
     gam_D = gamma
     gam_a = gamma
@@ -45,17 +44,15 @@ elif simulation_simple:
     angle = np.array([0, 0, 0])
     kernel_size = np.array((93, 31, 43))
     a_sim = -0.014
-    b_sim = 1.58
+    b_sim = 1
 
     _lambda = 1000
-    gam_h = 1e-7
-    alpha = gam_h
     gamma = 1
     gam_mu = gamma
     gam_D = gamma
     gam_a = gamma
     gam_b = gamma
-    plot = True
+    plot = False
     sigma_noise = 0.1
 
 else:
@@ -68,7 +65,6 @@ else:
 
     _lambda = 20
     gam_h = 1e-6
-    alpha = gam_h
     gamma = 1
     gam_mu = gamma
     gam_D = gamma

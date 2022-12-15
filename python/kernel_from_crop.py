@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from skimage import io as skio
 from skimage import measure
-from scipy.signal import fftconvolve
+from scipy.signal import fftconvolve, wiener
 import numpy as np
 from make_sphere import make_sphere
 from observation3D import observ, observ_distri
@@ -47,7 +47,7 @@ def pad(im):
 
 def pipeline(crop_file, global_path):
     if gv.reel:
-        # crop_file = '/home/julin/Documents/imbilles/crops/1/860_495-540_0.049xy_0.5z_2/0.tif'
+        crop_file = '/home/julin/Documents/imbilles/crops/0.2-1um_2/1um_0.037xy_0.05z_1/1.tif'
 
         Y = skio.imread(crop_file)
         Y = Y/np.max(Y)
@@ -72,6 +72,61 @@ def pipeline(crop_file, global_path):
     # observ_distri(X, gv.resolution, 'X')
     observ(X, 0, 'X')
     observ(Y, 0, 'Y')
+    #
+    std = []
+    for i in range(gv.kernel_size[2]):
+        std.append(np.std(Y[:, :, i] - wiener(Y[:, :, i])))
+
+    sigmaM = np.mean(std)
+    print("sigmaM : ", sigmaM)
+    # sigmaM = gv.sigma_noise
+    # Chi2 loop
+    n_iter = 20
+    ll_min = 0
+    ll_max = 8
+    N = Y.shape[0] * Y.shape[1] * Y.shape[2]
+    lambdas = []
+    errs = []
+    temps = []
+
+    for i in range(n_iter):
+        ll = (ll_min + ll_max) / 2
+        print()
+        print(i)
+        print("lambda : ", gv.lam)
+        gv.lam = 10**ll
+        t = time.time()
+        D, mu, a, b, h_args, h, X = from_bille(X, Y)
+        temps.append(np.log(time.time() - t))
+        chi2fit = np.linalg.norm(Y - a - b * fftconvolve(h, X, "same")) ** 2
+        if chi2fit > sigmaM ** 2 * N:
+            ll_max = ll
+            print("ll goes down")
+        else:
+            print("ll goes up")
+            ll_min = ll
+        print("chi2 criteria : ", chi2fit / (sigmaM ** 2 * N))
+        lambdas.append(ll)
+        if gv.simulation:
+            errs.append(np.linalg.norm(Dtrue - D) / np.linalg.norm(D))
+            print("error : ", errs[-1])
+            observ(htrue, 0, "htrue")
+
+        observ(h_args, 0, "kargs")
+        observ(h, 0, "k_est")
+        observ(fftconvolve(h_args, X, "same"), 0, "k convolué avec X")
+        observ_distri(h_args, gv.resolution, 'h_args distribution')
+
+    if gv.simulation:
+        plt.close("all")
+        plt.plot(lambdas, errs, 'o')
+        plt.title("Erreur relative sur D")
+        plt.show()
+    plt.plot(lambdas, temps, 'o')
+    plt.title("Temps d'exécution (log10)")
+    plt.show()
+    print("SigmaM : ", sigmaM)
+    gv.lam = 20
     chosen_D, chosen_mu, chosen_a, chosen_b, h_args, chosen_h, X = from_bille(X, Y)
     temps_exec = time.time() - t
 
@@ -110,7 +165,7 @@ def pipeline(crop_file, global_path):
               f"\nfalse FWMH = {gv.FWMH} " \
               f"\ntrue FWMH = {FWMH} " \
               f"\nkernel_size = {gv.kernel_size})" \
-              f"\n_lambda = {gv._lambda}" \
+              f"\n_lambda = {gv.lam}" \
               f"\ngam_h = {gv.gam_h}" \
               f"\nalpha = {gv.alpha}" \
               f"\ngamma = {gv.gamma}" \
@@ -132,7 +187,7 @@ def pipeline(crop_file, global_path):
                 f"\nkernel_size = {gv.kernel_size})" \
                 f"\na_sim = {gv.a_sim}" \
                 f"\nb_sim = {gv.b_sim}" \
-                f"\n_lambda = {gv._lambda}" \
+                f"\n_lambda = {gv.lam}" \
                 f"\ngam_h = {gv.gam_h}" \
                 f"\nalpha = {gv.alpha}" \
                 f"\ngamma = {gv.gamma}" \

@@ -6,7 +6,7 @@ import global_variables as gv
 from scipy.special import lambertw
 
 def prox(y, k, X, convo, a, b, D, x, mu, eps):
-    lam = gv._lambda
+    lam = gv.lam
     alph = gv.gam_h
     gam = gv.gam_h
 

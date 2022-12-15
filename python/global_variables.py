@@ -5,13 +5,13 @@ sphere_size = 1  # micrometers
 
 
 # algorithm parameters
-n_iter = 1000
-stop_criteria = 1e-6
+n_iter = 10000
+stop_criteria = 1e-5
 stop_criteria2 = 1e-4
 print_n_iter = 1
 
 
-cas = 'sim'
+cas = 'reel'
 
 if cas=='reel':
     reel = True
@@ -23,7 +23,7 @@ save_path = "/home/julin/Documents/MPM_results/"
 if reel:
     resolution = np.array((0.05, 0.037, 0.037))
     plot = False
-    _lambda = 100
+    lam = 100
     gam_h = 1e-7
     gamma = 1
     gam_mu = gamma
@@ -34,7 +34,6 @@ if reel:
 
 
 elif simulation_simple:
-
     resolution = np.array((0.05, 0.043, 0.043))
     D = [[0.02357253, 0.02227284, 0.06436205],
          [0.02227284, 0.20017209, 0.0174685],
@@ -46,7 +45,7 @@ elif simulation_simple:
     a_sim = -0.014
     b_sim = 1
 
-    _lambda = 1000
+    lam = 3000
     gamma = 1
     gam_mu = gamma
     gam_D = gamma
@@ -63,7 +62,7 @@ else:
     a_sim = 1
     b_sim = 2
 
-    _lambda = 20
+    lam = 20
     gam_h = 1e-6
     gamma = 1
     gam_mu = gamma

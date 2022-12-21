@@ -8,8 +8,9 @@ stop_criteria = 1e-5
 stop_criteria2 = 1e-4
 print_n_iter = 1
 
+lambda_loop = False
 # 3 cas possible : 'reel', 'simple' (simulation simple), 'realiste" (simulation realiste)
-cas = 'reel'
+cas = 'realiste'
 
 if cas == 'reel':
     reel = True
@@ -30,7 +31,7 @@ if reel:
     resolution = np.array((0.05, 0.037, 0.037))
     plot = False
     lam = 100
-    gam_h = 1e-7
+    gam_h = None
     gamma = 1
     gam_mu = gamma
     gam_D = gamma

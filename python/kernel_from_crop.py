@@ -5,7 +5,7 @@ from scipy.signal import fftconvolve, wiener
 import numpy as np
 from make_sphere import make_sphere
 from observation3D import observ, observ_distri
-from main import from_bille, kernel
+from PSFEstimation import PSFEstimation, kernel
 from MPM.python.gen_observation import gen_observation
 from prox.utils import get_barycentre, get_a
 import time
@@ -26,7 +26,7 @@ def pad(im):
     return im_new
 
 
-def pipeline(crop_file, global_path):
+def pipeline(crop_file=None):
     if gv.reel:
         # crop_file = '/home/julin/Documents/imbilles/crops/0.2-1um_2/1um_0.037xy_0.05z_1/1.tif'
         Y = skio.imread(crop_file)
@@ -59,53 +59,53 @@ def pipeline(crop_file, global_path):
     print("sigmaM : ", sigmaM)
     # sigmaM = gv.sigma_noise
     # Chi2 loop
-    n_iter = 20
-    ll_min = 0
-    ll_max = 8
-    N = Y.shape[0] * Y.shape[1] * Y.shape[2]
-    lambdas = []
-    errs = []
-    temps = []
+    if gv.lamba_loop:
+        n_iter = 10
+        ll_min = 0
+        ll_max = 6
+        N = Y.shape[0] * Y.shape[1] * Y.shape[2]
+        lambdas = []
+        errs = []
+        temps = []
 
-    for i in range(n_iter):
-        ll = (ll_min + ll_max) / 2
-        print()
-        print(i)
-        print("lambda : ", gv.lam)
-        gv.lam = 10**ll
-        t = time.time()
-        D, mu, a, b, h_args, h, X = from_bille(X, Y)
-        temps.append(np.log(time.time() - t))
-        chi2fit = np.linalg.norm(Y - a - b * fftconvolve(h, X, "same")) ** 2
-        if chi2fit > sigmaM ** 2 * N:
-            ll_max = ll
-            print("ll goes down")
-        else:
-            print("ll goes up")
-            ll_min = ll
-        print("chi2 criteria : ", chi2fit / (sigmaM ** 2 * N))
-        lambdas.append(ll)
+        for i in range(n_iter):
+            ll = (ll_min + ll_max) / 2
+            print()
+            print(i)
+            print("lambda : ", gv.lam)
+            gv.lam = 10**ll
+            t = time.time()
+            D, mu, a, b, h_args, h, X = PSFEstimation(X, Y)
+            temps.append(np.log(time.time() - t))
+            chi2fit = np.linalg.norm(Y - a - b * fftconvolve(h, X, "same")) ** 2
+            if chi2fit > sigmaM ** 2 * N:
+                ll_max = ll
+                print("ll goes down")
+            else:
+                print("ll goes up")
+                ll_min = ll
+            print("chi2 criteria : ", chi2fit / (sigmaM ** 2 * N))
+            lambdas.append(ll)
+            if gv.simulation:
+                errs.append(np.linalg.norm(Dtrue - D) / np.linalg.norm(D))
+                print("error : ", errs[-1])
+                observ(htrue, 0, "htrue")
+
+            observ(h_args, 0, "kargs")
+            observ(h, 0, "k_est")
+            observ(fftconvolve(h_args, X, "same"), 0, "k convolué avec X")
+            observ_distri(h_args, gv.resolution, 'h_args distribution')
+
         if gv.simulation:
-            errs.append(np.linalg.norm(Dtrue - D) / np.linalg.norm(D))
-            print("error : ", errs[-1])
-            observ(htrue, 0, "htrue")
-
-        observ(h_args, 0, "kargs")
-        observ(h, 0, "k_est")
-        observ(fftconvolve(h_args, X, "same"), 0, "k convolué avec X")
-        observ_distri(h_args, gv.resolution, 'h_args distribution')
-
-    if gv.simulation:
-        plt.close("all")
-        plt.plot(lambdas, errs, 'o')
-        plt.title("Erreur relative sur D")
+            plt.close("all")
+            plt.plot(lambdas, errs, 'o')
+            plt.title("Erreur relative sur D")
+            plt.show()
+        plt.plot(lambdas, temps, 'o')
+        plt.title("Temps d'exécution (log10)")
         plt.show()
-    plt.plot(lambdas, temps, 'o')
-    plt.title("Temps d'exécution (log10)")
-    plt.show()
-    print("SigmaM : ", sigmaM)
-    gv.lam = 20
-    chosen_D, chosen_mu, chosen_a, chosen_b, h_args, chosen_h, X = from_bille(X, Y)
+        print("SigmaM : ", sigmaM)
+    chosen_D, chosen_mu, chosen_a, chosen_b, h_args, chosen_h, X = PSFEstimation(X, Y)
     temps_exec = time.time() - t
 
     if gv.simulation:
@@ -242,7 +242,7 @@ path_ims = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
 #         # pipeline(path_crop)
 #         gv.save_path = global_path+ims+"/crop"+crop[:-4] + "/"
 #         os.listdir(gv.save_path)
-#         pipeline(path_crop, global_path)
+#         pipeline(path_crop)
 
-pipeline("crops/Y/0.tif", global_path = "crops/")
+pipeline("crops/Y/0.tif")
 

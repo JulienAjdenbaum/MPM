@@ -116,7 +116,7 @@ def ProxEntropyNu(k, gam, lam, c, nu):
     utils.myprint("W ", np.max(rho2), np.min(rho2))
     tau = rho2 + np.log(rho1)
     # print(tau)
-    U = tau * (1 - np.log(tau) / (1 + tau))
+    U = tau * (1 - np.log(tau + 1e-6) / (1 + tau))
     utils.myprint("U ", np.max(U), np.min(U))
     U[tau < limit] = Lambert_W(np.exp(tau[tau < limit]))
 

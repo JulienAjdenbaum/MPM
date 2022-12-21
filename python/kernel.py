@@ -18,10 +18,10 @@ def genC(theta, var):
     return np.linalg.inv(R @ np.diag(var.T) @ R.T)
 
 
-def gaussian_kernel(D, mu):
+def gaussian_kernel(C, mu):
     x, y, z, X = utils.mymgrid()
     x, y, z = x - mu[0], y - mu[1], z - mu[2]
-    value = np.einsum('hjkl, hi,ijkl-> jkl', np.array([x, y, z]), D, np.array([x, y, z]))
+    value = np.einsum('hjkl, hi,ijkl-> jkl', np.array([x, y, z]), C, np.array([x, y, z]))
     kernel = np.exp(-(value / 2.0))
     kernel = kernel / np.sum(kernel)
     return kernel

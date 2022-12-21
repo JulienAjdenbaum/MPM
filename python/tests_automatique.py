@@ -8,9 +8,6 @@ import matplotlib.pyplot as plt
 from skimage import io as skio
 
 
-gv.plot = False
-gv.resolution = [0.5, 0.37, 0.37]
-gv.sphere_size = 1  # En micromètres, 1 pour une grosse bille, 0.2 petite bille
 taille_image = np.array([512, 512, 128])
 n_billes = 10
 sigma = 0.1

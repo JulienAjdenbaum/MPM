@@ -1,11 +1,14 @@
 import numpy as np
 import global_variables as gv
-import prox.utils as utils
-from scipy.signal import convolve
-def make_sphere():
-    rayon = gv.sphere_size/2
+import MPM.python.prox.utils as utils
+
+
+def make_sphere(size=None):
+    if size is None:
+        size = gv.kernel_size
+    rayon = gv.sphere_size / 2
     print("rayon =", rayon)
-    x, y, z, X = utils.mymgrid()
+    x, y, z, X = utils.mymgrid(size)
     if gv.interpolated:
         # raise Exception('interpolated is True')
         sphere = np.zeros((x.shape[0], x.shape[1], z.shape[2]))
@@ -23,10 +26,11 @@ def make_sphere():
                         a = np.sqrt((np.abs(x[i, j, k] * gv.resolution[0])) ** 2
                                     + (np.abs(y[i, j, k] * gv.resolution[1])) ** 2
                                     + (np.abs(z[i, j, k] * gv.resolution[2])) ** 2)
-                        sphere[i, j, k] = (rayon-b)/(a-b)
+                        sphere[i, j, k] = (rayon - b) / (a - b)
         return sphere
-    print(np.max((x/gv.resolution[0])))
-    sphere = np.where(np.sqrt(((x-1)*gv.resolution[0]) ** 2 + ((y-1)*gv.resolution[1]) ** 2 + ((z-1)*gv.resolution[2]) ** 2) <= rayon, 1, 0)
+    # print(np.max((x / gv.resolution[0])))
+    sphere = np.where(np.sqrt(((x - 1) * gv.resolution[0]) ** 2 + ((y - 1) * gv.resolution[1]) ** 2 + (
+                (z - 1) * gv.resolution[2]) ** 2) <= rayon, 1, 0)
     return sphere
 # values = make_sphere(8, 10)
 # observation3D.observ(values)

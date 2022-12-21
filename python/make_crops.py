@@ -5,8 +5,10 @@ import numpy as np
 import os
 import shutil
 
-path_ims = '/home/julin/Documents/imbilles/0.2-1um_2/'
-path_crops = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
+# path_ims = '/home/julin/Documents/imbilles/0.2-1um_2/'
+# path_crops = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
+path_ims = 'images/'
+path_crops = 'crops/'
 dirs = os.listdir(path_ims)
 sizes = []
 for imname in dirs:
@@ -18,7 +20,7 @@ for imname in dirs:
     filter = np.ones((3, 3, 3))
     imfiltered = fftconvolve(im, filter, "same")
     # print(np.min(imfiltered))
-    seuil = 300
+    seuil = 10000
     imfiltered[imfiltered < seuil] = 0
     imfiltered[imfiltered > seuil] = 1
 
@@ -30,7 +32,9 @@ for imname in dirs:
 
     size_min = 1000
     for i in range(1, n_regions):
+
         size = np.sum(np.where(labels == i, 1, 0))
+        print(i, size)
         if size > size_min:
             regions.append(i)
             regions_size.append(size)
@@ -60,7 +64,7 @@ for imname in dirs:
         im_croped = im[xmin:xmax, ymin:ymax, zmin:zmax]
         print(im_croped.shape)
         sizes.append(im_croped.flatten().shape[0])
-        print("region :", i, "size :", sizes[-1])
+        print("region :", i, "size :", sizes[i])
 
         # print(os.listdir())
         skio.imsave(path_crops + imname[:-4] + "/" + str(i) + ".tif", im_croped)

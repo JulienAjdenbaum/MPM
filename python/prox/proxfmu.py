@@ -1,5 +1,6 @@
 import numpy as np
-import global_variables as gv
+import MPM.python.global_variables as gv
+
 
 def prox(x, h, D, mu, lam, eps):
     gam = gv.gam_mu

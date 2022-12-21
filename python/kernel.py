@@ -1,7 +1,8 @@
 import numpy as np
 import prox.utils as utils
 
-def genD(theta, var):
+
+def genC(theta, var):
     Rx = np.array([[1, 0, 0], [0, np.cos(theta[0]), -np.sin(theta[0])], [0, np.sin(theta[0]), np.cos(theta[0])]])
     Ry = np.array([[np.cos(theta[1]), 0, np.sin(theta[1])],
                    [0, 1, 0],

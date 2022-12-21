@@ -5,7 +5,8 @@ from scipy.signal import fftconvolve, wiener
 import numpy as np
 from make_sphere import make_sphere
 from observation3D import observ, observ_distri
-from main import from_bille, kernel, gen_observation
+from main import from_bille, kernel
+from MPM.python.gen_observation import gen_observation
 from prox.utils import get_barycentre, get_a
 import time
 import global_variables as gv
@@ -13,26 +14,6 @@ import scipy
 import os
 import datetime
 
-#%%
-# def pad(im):
-#     xg, yg, zg = get_barycentre(im)
-#     maxi = int(np.ceil(np.max((xg, yg, zg, im.shape[0]-xg, im.shape[1]-yg, im.shape[2]-zg))))
-#     # print(maxi)
-#     im_padded = np.zeros((2*maxi+1, 2*maxi+1, 2*maxi+1))
-#     # print(im_padded.shape)
-#     # print(int(im_padded.shape[0] // 2 - xg),
-#     #       int(im_padded.shape[1] // 2 - yg),
-#     #       int(im_padded.shape[2] // 2 - zg))
-#     # print(int(im_padded.shape[0] // 2 - xg)+im.shape[0],
-#     #       int(im_padded.shape[1] // 2 - yg)+im.shape[1],
-#     #       int(im_padded.shape[2] // 2 - zg)+im.shape[2])
-#
-#     im_padded[int(im_padded.shape[0]//2-xg)+1:int(im_padded.shape[0]//2-xg)+im.shape[0]+1,
-#               int(im_padded.shape[1]//2-yg)+1:int(im_padded.shape[1]//2-yg)+im.shape[1]+1,
-#               int(im_padded.shape[2]//2-zg)+1:int(im_padded.shape[2]//2-zg)+im.shape[2]+1] = im
-#     # print(get_barycentre(im_padded))
-#     # observ(im_padded, 0, "padded")
-#     return im_padded
 
 def pad(im):
     maxi = np.max(im.shape)
@@ -47,28 +28,25 @@ def pad(im):
 
 def pipeline(crop_file, global_path):
     if gv.reel:
-        crop_file = '/home/julin/Documents/imbilles/crops/0.2-1um_2/1um_0.037xy_0.05z_1/1.tif'
-
+        # crop_file = '/home/julin/Documents/imbilles/crops/0.2-1um_2/1um_0.037xy_0.05z_1/1.tif'
         Y = skio.imread(crop_file)
+        gv.kernel_size = Y.shape
+        print(gv.kernel_size)
         Y = Y/np.max(Y)
         observ_distri(Y, gv.resolution, 'Y distribution')
         gv.kernel_size = np.array(Y.shape)
 
     if gv.simulation:
-        # C = np.divide(gv.FWMH/(2*np.sqrt(2*np.log(2))), gv.resolution)
-
         mutrue = np.array([0, 0, 0])
-        # Dtrue = kernel.genD(gv.angle, C)
         Dtrue = gv.D
         print(Dtrue)
         Y, htrue, X = gen_observation(mutrue, Dtrue, sigma_noise=gv.sigma_noise)
         print(np.max(Y), np.min(Y), np.mean(Y))
-        # Y = Y
         observ_distri(htrue, gv.resolution, 'h_true distribution')
         # print(Y)
 
     t = time.time()
-    X = make_sphere()
+    X = make_sphere(size = gv.kernel_size)
     # observ_distri(X, gv.resolution, 'X')
     observ(X, 0, 'X')
     observ(Y, 0, 'Y')
@@ -230,10 +208,10 @@ def pipeline(crop_file, global_path):
 
 path_ims = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
 
-n_images = 0
-for ims in os.listdir(path_ims):
-    for crop in os.listdir(path_ims+ims+"/"):
-        n_images+=1
+# n_images = 0
+# for ims in os.listdir(path_ims):
+#     for crop in os.listdir(path_ims+ims+"/"):
+#         n_images+=1
 
 # i_image = 0
 # global_path = "/home/julin/Documents/MPM_results/0.2-1um_3/"
@@ -266,5 +244,5 @@ for ims in os.listdir(path_ims):
 #         os.listdir(gv.save_path)
 #         pipeline(path_crop, global_path)
 
-pipeline(None, global_path = "/home/julin/Documents/MPM_results/simu")
+pipeline("crops/Y/0.tif", global_path = "crops/")
 

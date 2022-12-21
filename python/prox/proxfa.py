@@ -1,6 +1,6 @@
 import numpy as np
-import global_variables as gv
-from scipy.signal import fftconvolve
+import MPM.python.global_variables as gv
+
 
 def prox(a, b, y, convo):
     gam = gv.gam_a
@@ -12,4 +12,4 @@ def prox(a, b, y, convo):
     # print(np.linalg.norm(y-b*fftconvolve(k, p, "same")))
     # print()
 
-    return (a + gam*np.sum(y-b*convo))/(1+gam*convo.shape[0]*convo.shape[1]*convo.shape[2])
+    return (a + gam * np.sum(y - b * convo)) / (1 + gam * convo.shape[0] * convo.shape[1] * convo.shape[2])

@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mayavi import mlab
 from matplotlib import rc
-from prox.utils import get_barycentre
-import prox.utils as utils
-import global_variables as gv
+from MPM.python.prox.utils import get_barycentre
+import MPM.python.prox.utils as utils
+import MPM.python.global_variables as gv
 
 rc('text', usetex=True)
 
@@ -38,7 +38,6 @@ rc('text', usetex=True)
 #     print("ploted")
 
 def observcoupe(values, center, title):
-    print("gv.plot ", gv.plot)
     fig1 = plt.figure()
     plt.imshow(values[:, values.shape[1] // 2 + center, :],
                extent=[0, values.shape[2]*gv.resolution[2], 0, values.shape[0]*gv.resolution[0]])
@@ -64,7 +63,7 @@ def observcoupe(values, center, title):
 def observ(values, center, title):
     observcoupe(values, center, title)
     if gv.plot:
-        xi, yi, zi, Xi = utils.mymgrid()
+        xi, yi, zi, Xi = utils.mymgrid(shape=values.shape)
         density = values[xi, yi, zi]
         grid = mlab.pipeline.scalar_field(xi, yi, zi, values)
         mini = density.min()

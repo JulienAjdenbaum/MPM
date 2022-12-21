@@ -1,8 +1,6 @@
 import numpy as np
 from scipy.signal import fftconvolve
-import make_sphere
 import kernel
-import observation3D
 
 import prox.proxfa as proxfa
 import prox.proxfb as proxfb
@@ -22,27 +20,9 @@ rc('text', usetex=True)
 
 # np.random.seed(0)
 
-def gen_observation(kernel_mu, kernel_D, sigma_noise = 0.2):
-    my_sphere = make_sphere.make_sphere()
-    generated_h = kernel.gaussian_kernel(kernel_D, kernel_mu)
-    print("mysphere", np.min(my_sphere), np.max(my_sphere))
-    print("generated_h", np.min(generated_h), np.max(generated_h), np.sum(generated_h))
-    im = gv.a_sim + gv.b_sim * fftconvolve(my_sphere, generated_h, 'same')
-    observation3D.observ(my_sphere, 0, "Grosse bille")
-    observation3D.observ(generated_h, kernel_mu[0], "Noyau généré")
-    observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")
-    print("min im", np.min(im), np.max(im))
-    im += np.random.randn(im.shape[0], im.shape[1], im.shape[2]) * sigma_noise
-    print("min im", np.min(im), np.max(im))
-    # if plot_observation:
-    #     observation3D.observ(im, kernel_mu[0], "Bille convoluée bruitée")
-    #     observation3D.observ(my_sphere)
-    #     observation3D.observ(im)
-    return utils.saturation(im), generated_h, my_sphere
-
 
 def from_bille(p, Y):
-    x, y, z, XYZ = utils.mymgrid()
+    x, y, z, XYZ = utils.mymgrid(gv.kernel_size)
     print('x', XYZ.shape)
     # Y, ktrue, p = gen_observation(kernel_size, mutrue, Dtrue, plot)
     D = np.eye(3)
@@ -67,21 +47,20 @@ def from_bille(p, Y):
     stop = 1000000
     gv.reussi = False
 
-
     for i in range(gv.n_iter):
         convo = fftconvolve(h, p, "same")
         newa = proxfa.prox(a, b, Y, convo)
         newb = proxfb.prox(newa, b, Y, convo)
-        gv.gam_h = 2 / (b**2 * fftn2)
+        gv.gam_h = 2 / (b ** 2 * fftn2)
         newh = proxfh.prox(Y, h, p, convo, newa, newb, D, XYZ, mu, epsD)
         newmu = proxfmu.prox(XYZ, newh, D, mu, gv.lam, epsD)
         newD = proxfd.prox(D, newh, XYZ, newmu, epsD, gv.lam)
         stop_new = np.linalg.norm(h - newh) \
-                + np.linalg.norm(mu - newmu)\
-                + np.linalg.norm(D - newD) \
-                + np.linalg.norm(a - newa)\
-                + np.linalg.norm(b - newb)
-        stop2 = np.abs(stop-stop_new)/stop_new + 1
+                   + np.linalg.norm(mu - newmu) \
+                   + np.linalg.norm(D - newD) \
+                   + np.linalg.norm(a - newa) \
+                   + np.linalg.norm(b - newb)
+        stop2 = np.abs(stop - stop_new) / stop_new + 1
         stop = stop_new
 
         if i % gv.print_n_iter == 0:
@@ -105,8 +84,8 @@ def from_bille(p, Y):
         i_list.append(i)
         # norm_list.append(np.linalg.norm(D-Dtrue))
         norms_new_list.append(np.linalg.norm(D - newD))
-        if stop < gv.stop_criteria or (stop2 < gv.stop_criteria2 and gv.n_iter>100):
-            if stop < gv.stop_criteria :
+        if stop < gv.stop_criteria or (stop2 < gv.stop_criteria2 and gv.n_iter > 100):
+            if stop < gv.stop_criteria:
                 gv.reussi = True
             print("last iteration :", i)
 

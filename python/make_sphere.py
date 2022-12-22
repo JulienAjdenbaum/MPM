@@ -1,6 +1,6 @@
 import numpy as np
 import global_variables as gv
-import MPM.python.prox.utils as utils
+import prox.utils as utils
 
 
 def make_sphere(size=None):

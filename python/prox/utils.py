@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import fftconvolve
-import MPM.python.global_variables as gv
+import global_variables as gv
 
 
 def c(D, x, mu, eps):

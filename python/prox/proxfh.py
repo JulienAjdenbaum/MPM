@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.signal import fftconvolve
 import math
-import MPM.python.prox.utils as utils
-import MPM.python.global_variables as gv
+import prox.utils as utils
+import global_variables as gv
 
 
 def prox(y, k, X, convo, a, b, D, x, mu, eps):

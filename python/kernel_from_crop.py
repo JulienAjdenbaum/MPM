@@ -6,7 +6,7 @@ import numpy as np
 from make_sphere import make_sphere
 from observation3D import observ, observ_distri
 from PSFEstimation import PSFEstimation, kernel
-from MPM.python.gen_observation import gen_observation
+from gen_observation import gen_observation
 from prox.utils import get_barycentre, get_a
 import time
 import global_variables as gv

@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mayavi import mlab
 from matplotlib import rc
-from MPM.python.prox.utils import get_barycentre
-import MPM.python.prox.utils as utils
-import MPM.python.global_variables as gv
+from prox.utils import get_barycentre
+import prox.utils as utils
+import global_variables as gv
 
-rc('text', usetex=True)
+# rc('text', usetex=True)
 
 
 # def observ(values, crop):

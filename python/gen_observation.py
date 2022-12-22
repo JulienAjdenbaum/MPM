@@ -1,12 +1,12 @@
 import numpy as np
 from scipy.signal import fftconvolve
 
-from MPM.python import make_sphere, kernel, global_variables as gv, observation3D
-from MPM.python.prox import utils as utils
+import make_sphere, kernel, global_variables as gv, observation3D
+from prox import utils as utils
 
 
-def gen_observation(kernel_mu, kernel_C, sigma_noise=0.2):
-    my_sphere = make_sphere.make_sphere()
+def gen_observation(kernel_mu, kernel_C, sigma_noise=0.2, sphere_size=None):
+    my_sphere = make_sphere.make_sphere(size=sphere_size)
     # print(my_sphere.shape)
     generated_h = kernel.gaussian_kernel(kernel_C, kernel_mu)
     im = gv.a_sim + gv.b_sim * fftconvolve(my_sphere, generated_h, 'same')

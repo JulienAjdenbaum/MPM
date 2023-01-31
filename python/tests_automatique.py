@@ -10,7 +10,7 @@ from skimage import io as skio
 np.random.seed(0)
 taille_image = np.array([512, 512, 128])
 n_billes = 10
-sigma = 0.0
+sigma = 0.1
 
 FWHM = np.random.uniform(0, 3, 3)
 print("FWHM", FWHM)
@@ -44,10 +44,16 @@ for i in range(n_billes):
     Y_small[centre[0] - window_size: centre[0] + window_size,
     centre[1] - window_size: centre[1] + window_size,
     centre[2] - window_size: centre[2] + window_size] = gen_observation([0, 0, 0], C, 0, sphere_size=0.2)[0][:a, :b, :c]
+    print(Y_small[max(centre[0] - window_size, 0)])
+
 Y_big = (Y_big + np.random.randn(taille_image[0], taille_image[1], taille_image[2])*sigma)*4096
 Y_small = (Y_small + np.random.randn(taille_image[0], taille_image[1], taille_image[2])*sigma)*4096
 
 gv.plot = True
+print("Y_small min = ", np.min(Y_small))
+print("Y_big min = ", np.min(Y_big))
+print(Y_small[0])
+print(Y_big[0])
 plt.close("all")
 # observation3D.observ(Y_big, 0, "Y")
 skio.imsave("images/Y_big.tif", Y_big)

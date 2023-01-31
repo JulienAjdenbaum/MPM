@@ -49,7 +49,7 @@ elif not simulation_simple:
     FWMH = np.sqrt(np.linalg.eig(sigma)[0]) * resolution * (2 * np.sqrt(2 * np.log(2)))
     angle = np.array([0, 0, 0])
     kernel_size = np.array((93, 31, 43))
-    a_sim = -0.014
+    a_sim = 0
     b_sim = 1
 
     lam = 3000
@@ -60,7 +60,7 @@ elif not simulation_simple:
     gam_a = gamma
     gam_b = gamma
     plot = False
-    sigma_noise = 0.2
+    sigma_noise = 0
 
 else:
     resolution = np.array((1, 1, 1)) / 5

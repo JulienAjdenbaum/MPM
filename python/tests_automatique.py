@@ -38,7 +38,7 @@ Y_small = (Y_small + np.random.randn(taille_image[0], taille_image[1], taille_im
 
 gv.plot = True
 plt.close("all")
-observation3D.observ(Y_big, 0, "Y")
+# observation3D.observ(Y_big, 0, "Y")
 skio.imsave("images/Y_big.tif", Y_big)
 skio.imsave("images/Y_small.tif", Y_small)
 file = open("images/C", "w")

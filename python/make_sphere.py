@@ -4,10 +4,11 @@ import prox.utils as utils
 
 
 def make_sphere(size=None):
+    # print(size)
     if size is None:
         size = gv.kernel_size
-    rayon = gv.sphere_size / 2
-    print("rayon =", rayon)
+    rayon = size / 2
+    # print("rayon =", rayon)
     x, y, z, X = utils.mymgrid(size)
     if gv.interpolated:
         # raise Exception('interpolated is True')

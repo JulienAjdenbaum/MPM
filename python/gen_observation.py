@@ -6,10 +6,14 @@ from prox import utils as utils
 
 
 def gen_observation(kernel_mu, kernel_C, sigma_noise=0.2, sphere_size=None):
+    # print('bbbb', gv.kernel_size)
     my_sphere = make_sphere.make_sphere(size=sphere_size)
     # print(my_sphere.shape)
+    # print("line 12")
     generated_h = kernel.gaussian_kernel(kernel_C, kernel_mu)
+    # print("line 14")
     im = gv.a_sim + gv.b_sim * fftconvolve(my_sphere, generated_h, 'same')
+    # print("line 16")
     observation3D.observ(my_sphere, 0, "Grosse bille")
     observation3D.observ(generated_h, kernel_mu[0], "Noyau généré")
     observation3D.observ(im, kernel_mu[0], "Bille convoluée non bruitée")

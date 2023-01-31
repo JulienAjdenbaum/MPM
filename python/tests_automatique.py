@@ -10,9 +10,10 @@ from skimage import io as skio
 np.random.seed(0)
 taille_image = np.array([512, 512, 128])
 n_billes = 10
-sigma = 0.1
+sigma = 0.01
 
-FWHM = np.random.uniform(0, 3, 3)
+# FWHM = np.random.uniform(0, 3, 3)
+FWHM = [1.5, 0.3, 0.3]
 print("FWHM", FWHM)
 variance = np.divide(FWHM / (2 * np.sqrt(2 * np.log(2))), gv.resolution)
 angles = np.random.uniform(0, 2 * np.pi, 3)

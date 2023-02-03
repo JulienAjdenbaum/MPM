@@ -6,7 +6,7 @@ import prox.utils as utils
 def make_sphere(size=None):
     # print(size)
     if size is None:
-        size = gv.kernel_size
+        size = gv.sphere_size
     rayon = size / 2
     # print("rayon =", rayon)
     x, y, z, X = utils.mymgrid(size)
@@ -30,6 +30,11 @@ def make_sphere(size=None):
                         sphere[i, j, k] = (rayon - b) / (a - b)
         return sphere
     # print(np.max((x / gv.resolution[0])))
+    # print(x.shape)
+    # print(y.shape)
+    # print(z.shape)
+    # print(gv.resolution)
+    # print(rayon)
     sphere = np.where(np.sqrt(((x - 1) * gv.resolution[0]) ** 2 + ((y - 1) * gv.resolution[1]) ** 2 + (
                 (z - 1) * gv.resolution[2]) ** 2) <= rayon, 1, 0)
     return sphere

@@ -30,6 +30,7 @@ def pipeline(crop_file=None):
     if gv.reel:
         # crop_file = '/home/julin/Documents/imbilles/crops/0.2-1um_2/1um_0.037xy_0.05z_1/1.tif'
         Y = skio.imread(crop_file)
+
         gv.kernel_size = Y.shape
         print(gv.kernel_size)
         Y = Y/np.max(Y)
@@ -59,10 +60,10 @@ def pipeline(crop_file=None):
     print("sigmaM : ", sigmaM)
     # sigmaM = gv.sigma_noise
     # Chi2 loop
-    if gv.lamba_loop:
+    if gv.lambda_loop:
         n_iter = 10
         ll_min = 0
-        ll_max = 6
+        ll_max = 3
         N = Y.shape[0] * Y.shape[1] * Y.shape[2]
         lambdas = []
         errs = []
@@ -95,9 +96,9 @@ def pipeline(crop_file=None):
             observ(h, 0, "k_est")
             observ(fftconvolve(h_args, X, "same"), 0, "k convolué avec X")
             observ_distri(h_args, gv.resolution, 'h_args distribution')
-
+        plt.close("all")
         if gv.simulation:
-            plt.close("all")
+
             plt.plot(lambdas, errs, 'o')
             plt.title("Erreur relative sur D")
             plt.show()
@@ -128,7 +129,7 @@ def pipeline(crop_file=None):
     os.mkdir(gv.save_path+"plots")
     os.mkdir(gv.save_path+"values")
     settings_file = open(gv.save_path+"settings.txt", "w")
-
+    print(gv.save_path+"settings.txt", "w")
     if gv.reel:
         # f"\nsigma_bruit = {gv.sigma_noise}" \
         # f"\nangle = {gv.angle}" \
@@ -145,7 +146,6 @@ def pipeline(crop_file=None):
               f"\nkernel_size = {gv.kernel_size})" \
               f"\n_lambda = {gv.lam}" \
               f"\ngam_h = {gv.gam_h}" \
-              f"\nalpha = {gv.alpha}" \
               f"\ngamma = {gv.gamma}" \
               f"\ngam_mu = {gv.gam_mu}" \
               f"\ngam_D = {gv.gam_D}" \
@@ -202,47 +202,47 @@ def pipeline(crop_file=None):
         np.save(gv.save_path + "values/" + "htrue" + ".npy", htrue)
         np.save(gv.save_path + "values/" + "Dtrue" + ".npy", Dtrue)
 
-    # file = open(global_path + "tableau.txt", 'a')
-    # file.write(gv.im_name.split('/')[0] + ',' + gv.im_name.split('/')[1] + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
-    # file.close()
+    file = open(global_path + "tableau.txt", 'a')
+    file.write(gv.im_name.split('/')[0] + ',' + gv.im_name.split('/')[1] + ','+str(FWMH[0]) + ','+str(FWMH[1]) + ',' + str(FWMH[2]) + ',' + str(gv.reussi) + '\n')
+    file.close()
 
-path_ims = '/home/julin/Documents/imbilles/crops/0.2-1um_2/'
+path_ims = 'crops/'
 
-# n_images = 0
-# for ims in os.listdir(path_ims):
-#     for crop in os.listdir(path_ims+ims+"/"):
-#         n_images+=1
+n_images = 0
+for ims in os.listdir(path_ims):
+    for crop in os.listdir(path_ims+ims+"/"):
+        n_images+=1
 
-# i_image = 0
-# global_path = "/home/julin/Documents/MPM_results/0.2-1um_3/"
-# try:
-#     os.mkdir(global_path)
-# except:
-#     pass
+i_image = 0
+global_path = "kernels/"
+try:
+    os.mkdir(global_path)
+except:
+    pass
 
-# file = open(global_path + "tableau.txt", 'a')
-# file.write('set' + ',' + 'crop' + ',' + 'FWHM X' + ',' + 'FWHM Y'+ ',' + 'FWHM Z' + ',' + "convergence" + '\n')
-# file.close()
-# for ims in os.listdir(path_ims):
-#     try:
-#         os.mkdir(global_path+ims+"/")
-#     except:
-#         pass
-#     for crop in os.listdir(path_ims+ims+"/"):
-#         try:
-#             os.mkdir(global_path+ims+"/crop"+crop[:-4])
-#         except:
-#             pass
-#         i_image += 1
-#         path_crop = path_ims + ims+"/" + crop
-#         gv.im_name = ims+"/"+crop
-#         print(path_crop)
-#         print(gv.im_name)
-#         print(f'Image {i_image}/{n_images}')
-#         # pipeline(path_crop)
-#         gv.save_path = global_path+ims+"/crop"+crop[:-4] + "/"
-#         os.listdir(gv.save_path)
-#         pipeline(path_crop)
+file = open(global_path + "tableau.txt", 'a')
+file.write('set' + ',' + 'crop' + ',' + 'FWHM X' + ',' + 'FWHM Y'+ ',' + 'FWHM Z' + ',' + "convergence" + '\n')
+file.close()
+for ims in os.listdir(path_ims):
+    try:
+        os.mkdir(global_path+ims+"/")
+    except:
+        pass
+    for crop in os.listdir(path_ims+ims+"/"):
+        try:
+            os.mkdir(global_path+ims+"/crop"+crop[:-4])
+        except:
+            pass
+        i_image += 1
+        path_crop = path_ims + ims+"/" + crop
+        gv.im_name = ims+"/"+crop
+        print(path_crop)
+        print(gv.im_name)
+        print(f'Image {i_image}/{n_images}')
+        # pipeline(path_crop)
+        gv.save_path = global_path+ims+"/crop"+crop[:-4] + "/"
+        os.listdir(gv.save_path)
+        pipeline(path_crop)
 
-pipeline("crops/Y/0.tif")
+# pipeline("crops/Y_big/0.tif")
 

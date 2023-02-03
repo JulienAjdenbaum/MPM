@@ -6,7 +6,7 @@ from prox.utils import get_barycentre
 import prox.utils as utils
 import global_variables as gv
 
-# rc('text', usetex=True)
+rc('text', usetex=True)
 
 
 # def observ(values, crop):

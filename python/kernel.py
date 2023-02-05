@@ -14,7 +14,6 @@ def genC(theta, var):
 
     R = Rx @ Ry @ Rz
     # R = np.eye(3)
-    print()
     return np.linalg.inv(R @ np.diag(var.T) @ R.T)
 
 

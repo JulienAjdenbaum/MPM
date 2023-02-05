@@ -3,12 +3,12 @@ import numpy as np
 sphere_size = 1  # micrometers
 
 # algorithm parameters
-n_iter = 10000
-stop_criteria = 1e-5
+n_iter = 20000
+stop_criteria = 1e-6
 stop_criteria2 = 1e-4
 print_n_iter = 20
 
-lambda_loop = True
+lambda_loop = False
 # 3 cas possible : 'reel', 'simple' (simulation simple), 'realiste" (simulation realiste)
 cas = 'realiste'
 
@@ -28,9 +28,9 @@ save_path = "saves/"
 
 if reel:
     kernel_size = None
-    resolution = np.array((0.05, 0.043, 0.043))
+    resolution = np.array((0.043, 0.043, 0.05))
     plot = False
-    lam = 10
+    lam = 2.15
     gam_h = None
     gamma = 1
     gam_mu = gamma
@@ -41,7 +41,7 @@ if reel:
 
 
 elif not simulation_simple:
-    resolution = np.array((0.05, 0.043, 0.043))
+    resolution = np.array((0.043, 0.043, 0.05))
     D = None
     # sigma = np.linalg.inv(D)
     # FWMH = np.sqrt(np.linalg.eig(sigma)[0]) * resolution * (2 * np.sqrt(2 * np.log(2)))

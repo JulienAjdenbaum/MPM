@@ -43,7 +43,6 @@ def mymgrid(shape=None):
     shape = gv.kernel_size
     shape = np.array(shape)
     half_size = shape // 2
-    print(half_size)
     x, y, z = np.mgrid[- half_size[0]: half_size[0] + shape[0] % 2,
                        - half_size[1]: half_size[1] + shape[1] % 2,
                        - half_size[2]: half_size[2] + shape[2] % 2].astype(int)

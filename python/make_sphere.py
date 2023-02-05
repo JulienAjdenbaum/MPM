@@ -5,7 +5,7 @@ import prox.utils as utils
 
 def make_sphere(size=None):
     # print(size)
-    if size is None:
+    if gv.reel:
         size = gv.sphere_size
     rayon = size / 2
     # print("rayon =", rayon)
@@ -34,7 +34,6 @@ def make_sphere(size=None):
     # print(y.shape)
     # print(z.shape)
     # print(gv.resolution)
-    # print(rayon)
     sphere = np.where(np.sqrt(((x - 1) * gv.resolution[0]) ** 2 + ((y - 1) * gv.resolution[1]) ** 2 + (
                 (z - 1) * gv.resolution[2]) ** 2) <= rayon, 1, 0)
     return sphere
